@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.6.29) (preloaded format=pdflatex 2020.7.3)  15 AUG 2023 11:06
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.6.29) (preloaded format=pdflatex 2020.7.3)  15 AUG 2023 11:20
 entering extended mode
 **./CV_ygkim.tex
 (CV_ygkim.tex
@@ -361,10 +361,10 @@ Package rerunfilecheck Info: File `CV_ygkim.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 6557 strings out of 480790
- 99297 string characters out of 2905180
- 375696 words of memory out of 3000000
- 22449 multiletter control sequences out of 15000+200000
+ 6556 strings out of 480790
+ 99286 string characters out of 2905180
+ 375693 words of memory out of 3000000
+ 22448 multiletter control sequences out of 15000+200000
  536942 words of font info for 39 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
  44i,5n,39p,923b,422s stack positions out of 5000i,500n,10000p,200000b,50000s
