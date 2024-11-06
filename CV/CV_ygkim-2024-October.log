@@ -1,7 +1,7 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.6.29) (preloaded format=pdflatex 2020.7.3)  30 OCT 2024 08:33
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.6.29) (preloaded format=pdflatex 2020.7.3)  20 OCT 2024 17:03
 entering extended mode
-**./CV_ygkim.tex
-(CV_ygkim.tex
+**./CV_ygkim-2024-October.tex
+(CV_ygkim-2024-October.tex
 LaTeX2e <2020-02-02> patch level 5
 L3 programming layer <2020-06-18> (CV_ygkim_preamble.tex (resume.cls
 Document Class: resume 2010/07/10 v0.9 Resume class
@@ -238,34 +238,34 @@ Package: ifvtex 2019/10/25 v1.7 ifvtex legacy package. Use iftex instead.
 ("C:\Program Files\MiKTeX 2.9\tex/latex/geometry\geometry.cfg"))
 Package hyperref Info: Option `colorlinks' set `true' on input line 16.
 )
-(CV_ygkim_affiliation.tex)
 ("C:\Program Files\MiKTeX 2.9\tex/latex/l3backend\l3backend-pdfmode.def"
 File: l3backend-pdfmode.def 2020-06-29 L3 backend support: PDF mode
 \l__kernel_color_stack_int=\count192
 \l__pdf_internal_box=\box47
 )
-(CV_ygkim.aux)
-\openout1 = `CV_ygkim.aux'.
+(CV_ygkim-2024-October.aux)
+\openout1 = `CV_ygkim-2024-October.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 9.
-LaTeX Font Info:    ... okay on input line 9.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 9.
-LaTeX Font Info:    ... okay on input line 9.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 9.
-LaTeX Font Info:    ... okay on input line 9.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 9.
-LaTeX Font Info:    ... okay on input line 9.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 9.
-LaTeX Font Info:    ... okay on input line 9.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 9.
-LaTeX Font Info:    ... okay on input line 9.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 9.
-LaTeX Font Info:    ... okay on input line 9.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 9.
-LaTeX Font Info:    ... okay on input line 9.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
 \AtBeginShipoutBox=\box48
-Package hyperref Info: Link coloring ON on input line 9.
- ("C:\Program Files\MiKTeX 2.9\tex/latex/hyperref\nameref.sty"
+Package hyperref Info: Link coloring ON on input line 16.
+
+("C:\Program Files\MiKTeX 2.9\tex/latex/hyperref\nameref.sty"
 Package: nameref 2019/09/16 v2.46 Cross-referencing by name of section
 
 ("C:\Program Files\MiKTeX 2.9\tex/latex/refcount\refcount.sty"
@@ -276,13 +276,13 @@ Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 )
 \c@section@level=\count193
 )
-LaTeX Info: Redefining \ref on input line 9.
-LaTeX Info: Redefining \pageref on input line 9.
-LaTeX Info: Redefining \nameref on input line 9.
+LaTeX Info: Redefining \ref on input line 16.
+LaTeX Info: Redefining \pageref on input line 16.
+LaTeX Info: Redefining \nameref on input line 16.
 
-(CV_ygkim.out) (CV_ygkim.out)
+(CV_ygkim-2024-October.out) (CV_ygkim-2024-October.out)
 \@outlinefile=\write3
-\openout3 = `CV_ygkim.out'.
+\openout3 = `CV_ygkim-2024-October.out'.
 
 
 ("C:\Program Files\MiKTeX 2.9\tex/context/base/mkii\supp-pdf.mkii"
@@ -334,48 +334,46 @@ LaTeX Info: Redefining \nameref on input line 9.
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
 
-Overfull \hbox (30.0pt too wide) in paragraph at lines 9--9
+Overfull \hbox (30.0pt too wide) in paragraph at lines 16--16
 [] 
  []
 
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <10.95> on input line 9.
+(Font)              <10.95> on input line 16.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 9.
+(Font)              <8> on input line 16.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 9.
-(CV_ygkim_employment.tex) (CV_ygkim_education.tex)
-(CV_ygkim_research_interest.tex) (CV_ygkim_research_papers.tex)
-(CV_ygkim_teaching.tex) (CV_ygkim_experience.tex [1
+(Font)              <6> on input line 16.
+[1
 
-{C:/Users/yglor/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]) (CV_ygkim_
-conference_seminar.tex)
-(CV_ygkim_fellowship.tex) (CV_ygkim_references.tex)
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 39.
+{C:/Users/yglor/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 252.
  [2]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 39.
- (CV_ygkim.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 39.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 39.
-Package rerunfilecheck Info: File `CV_ygkim.out' has not changed.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 252.
+
+(CV_ygkim-2024-October.aux)
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 252.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 252.
+Package rerunfilecheck Info: File `CV_ygkim-2024-October.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 6555 strings out of 480790
- 99510 string characters out of 2905180
- 375690 words of memory out of 3000000
- 22447 multiletter control sequences out of 15000+200000
+ 6525 strings out of 480790
+ 98324 string characters out of 2905180
+ 375675 words of memory out of 3000000
+ 22437 multiletter control sequences out of 15000+200000
  536942 words of font info for 39 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 44i,5n,39p,923b,383s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 44i,5n,39p,936b,379s stack positions out of 5000i,500n,10000p,200000b,50000s
 <C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/Pr
 ogram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Program Fi
 les/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Program Files/MiKTe
-X 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX 2.9/fo
-nts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on CV_ygkim.pdf (2 pages, 92953 bytes).
+X 2.9/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/Program Files/MiKTeX 2.9/fon
+ts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1
+/public/amsfonts/cm/cmti10.pfb>
+Output written on CV_ygkim-2024-October.pdf (2 pages, 101304 bytes).
 PDF statistics:
- 47 PDF objects out of 1000 (max. 8388607)
+ 51 PDF objects out of 1000 (max. 8388607)
  3 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
