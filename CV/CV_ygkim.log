@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.6.29) (preloaded format=pdflatex 2020.7.3)  9 MAR 2025 22:26
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.6.29) (preloaded format=pdflatex 2020.7.3)  16 MAY 2025 10:44
 entering extended mode
 **./CV_ygkim.tex
 (CV_ygkim.tex
@@ -361,10 +361,10 @@ Package rerunfilecheck Info: File `CV_ygkim.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 6556 strings out of 480790
- 99287 string characters out of 2905180
- 375660 words of memory out of 3000000
- 22448 multiletter control sequences out of 15000+200000
+ 6555 strings out of 480790
+ 99274 string characters out of 2905180
+ 375690 words of memory out of 3000000
+ 22447 multiletter control sequences out of 15000+200000
  536942 words of font info for 39 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
  44i,5n,39p,923b,383s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -373,7 +373,7 @@ ogram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Program Fi
 les/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Program Files/MiKTe
 X 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX 2.9/fo
 nts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on CV_ygkim.pdf (2 pages, 92561 bytes).
+Output written on CV_ygkim.pdf (2 pages, 92580 bytes).
 PDF statistics:
  47 PDF objects out of 1000 (max. 8388607)
  3 named destinations out of 1000 (max. 500000)
