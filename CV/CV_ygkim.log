@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.5) (preloaded format=pdflatex 2026.1.28)  16 FEB 2026 14:00
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.5) (preloaded format=pdflatex 2026.1.28)  16 FEB 2026 14:10
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -355,12 +355,7 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 
 {C:/Users/yk23l/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}]) (CV_ygkim_e
 xperience.tex) (CV_ygkim_conference_seminar.tex)
-(CV_ygkim_fellowship.tex) [2] (CV_ygkim_references.tex)
-
-LaTeX Warning: Etaremune labels have changed.
-               Rerun to get them right.
-
-[3] (CV_ygkim.aux)
+(CV_ygkim_fellowship.tex) [2] (CV_ygkim_references.tex) [3] (CV_ygkim.aux)
  ***********
 LaTeX2e <2023-06-01> patch level 1
 L3 programming layer <2023-06-30>
@@ -381,7 +376,7 @@ m Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Program Files/MiKT
 eX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Program Files/MiKTeX/fonts/type
 1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX/fonts/type1/public/ams
 fonts/cm/cmti10.pfb>
-Output written on CV_ygkim.pdf (3 pages, 98986 bytes).
+Output written on CV_ygkim.pdf (3 pages, 98984 bytes).
 PDF statistics:
  58 PDF objects out of 1000 (max. 8388607)
  4 named destinations out of 1000 (max. 500000)
