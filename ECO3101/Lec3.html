@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  ECO 3101 — Interactive practice page.  Self-contained: one HTML file.
+  No installation, no server. Double-click to open; drop into a GitHub repo
+  to publish for students.
+
+  HOW IT'S ORGANIZED (for editing later):
+  - All the math/questions live in the QUESTIONS array near the bottom of the
+    <script>. Each entry is one "problem type." To change the random ranges,
+    edit the numbers inside its gen() function — look for "EDIT NUMBERS HERE".
+  - To add a new problem type, copy one block and adjust it.
+  - The look (colors/fonts) is in the <style> block; you can ignore it.
+  ============================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lecture 3 Exercises — Intermediate Microeconomics</title>
+
+<!-- Fonts: IBM Plex family (academic/technical feel) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- MathJax: renders the LaTeX math. Loads from a CDN; needs internet.
+     We boot the app from MathJax's pageReady hook (see config below). -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(', '\\)'], ['$', '$']], displayMath: [['$$', '$$']] },
+    svg: { fontCache: 'global' },
+    startup: {
+      typeset: false,
+      pageReady: () => MathJax.startup.defaultPageReady().then(() => boot())
+    }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+
+<style>
+  :root{
+    --paper:#eef1f5;        /* page background (cool soft white) */
+    --grid:#e0e5ec;         /* faint graph-paper lines */
+    --card:#ffffff;
+    --ink:#17263a;          /* primary text: deep slate-navy */
+    --muted:#5d6b7c;        /* secondary text */
+    --line:#dde3ea;         /* hairlines / borders */
+    --accent:#2b5c8a;       /* scholarly blue */
+    --accent-d:#1f456a;
+    --success:#2f7a52;
+    --success-bg:#eaf4ee;
+    --error:#b0432e;
+    --error-bg:#f7ece9;
+    --shadow:0 1px 2px rgba(23,38,58,.05), 0 12px 30px rgba(23,38,58,.07);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    color:var(--ink);
+    background-color:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:26px 26px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{ max-width:740px; margin:0 auto; padding:40px 20px 80px; }
+
+  /* ---- Header ---- */
+  .kicker{
+    font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.13em;
+    color:var(--accent); margin:0 0 10px;
+  }
+  header{ display:flex; align-items:center; gap:14px; margin-bottom:6px; }
+  .mark{ flex:0 0 auto; }
+  .mark svg{ display:block; }
+  h1{
+    font-family:'IBM Plex Serif', Georgia, serif;
+    font-weight:600; font-size:1.7rem; margin:0; letter-spacing:.01em;
+  }
+  .sub{ color:var(--muted); margin:.4em 0 26px; font-size:1rem; }
+
+  /* ---- Topic selector ---- */
+  .topics{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+  .topic{
+    font:500 .85rem/1 'IBM Plex Sans', sans-serif;
+    color:var(--muted); background:var(--card);
+    border:1px solid var(--line); border-radius:999px;
+    padding:8px 15px; cursor:pointer; transition:all .15s ease;
+  }
+  .topic:hover{ border-color:var(--accent); color:var(--accent); }
+  .topic.active{
+    background:var(--accent); border-color:var(--accent);
+    color:#fff; box-shadow:0 4px 12px rgba(43,92,138,.22);
+  }
+
+  /* ---- Card ---- */
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:26px 26px 22px; box-shadow:var(--shadow);
+  }
+  .eyebrow{
+    font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.1em; color:var(--accent);
+    margin-bottom:12px; display:flex; align-items:center; gap:8px;
+  }
+  .prompt{ font-size:1.05rem; }
+  .prompt p{ margin:.5em 0; }
+  .prompt .hint{
+    color:var(--muted); font-size:.92rem;
+    border-left:3px solid var(--line); padding-left:12px; margin-top:14px;
+  }
+
+  /* ---- Answer fields ---- */
+  .answers{ margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+  .field{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .field label{ font-size:.95rem; color:var(--ink); min-width:0; }
+  .field .inputwrap{ display:inline-flex; align-items:center; gap:6px; }
+  .field .prefix{ color:var(--muted); font-family:'IBM Plex Mono', monospace; }
+  .field input{
+    width:130px; font:500 1rem 'IBM Plex Mono', monospace;
+    color:var(--ink); background:var(--paper);
+    border:1.5px solid var(--line); border-radius:9px; padding:9px 11px;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .field input:focus{ outline:none; border-color:var(--accent); background:#fff; }
+  .field .unit{ color:var(--muted); font-size:.9rem; }
+  .field.ok input{ border-color:var(--success); background:var(--success-bg); }
+  .field.no input{ border-color:var(--error); background:var(--error-bg); }
+  .field .tag{
+    font:600 .68rem/1 'IBM Plex Mono', monospace; text-transform:uppercase;
+    letter-spacing:.06em; padding:3px 7px; border-radius:6px; opacity:0;
+  }
+  .field.ok .tag{ opacity:1; color:var(--success); background:var(--success-bg); }
+  .field.no .tag{ opacity:1; color:var(--error); background:var(--error-bg); }
+
+  /* ---- Multiple choice ---- */
+  .choices{ margin-top:20px; display:flex; flex-direction:column; gap:10px; }
+  .choice{
+    text-align:left; font:500 1rem 'IBM Plex Sans', sans-serif; color:var(--ink);
+    background:var(--paper); border:1.5px solid var(--line); border-radius:11px;
+    padding:13px 16px; cursor:pointer; transition:all .13s ease;
+    display:flex; align-items:center; gap:12px;
+  }
+  .choice:hover{ border-color:var(--accent); }
+  .choice .bullet{
+    flex:0 0 auto; width:22px; height:22px; border-radius:50%;
+    border:1.5px solid var(--line); display:inline-flex; align-items:center;
+    justify-content:center; font:600 .8rem 'IBM Plex Mono', monospace; color:var(--muted);
+  }
+  .choice.sel{ border-color:var(--accent); background:#fff; box-shadow:0 3px 10px rgba(43,92,138,.14); }
+  .choice.sel .bullet{ border-color:var(--accent); color:var(--accent); }
+  .choice.ok{ border-color:var(--success); background:var(--success-bg); }
+  .choice.ok .bullet{ border-color:var(--success); color:var(--success); background:#fff; }
+  .choice.no{ border-color:var(--error); background:var(--error-bg); }
+  .choice.no .bullet{ border-color:var(--error); color:var(--error); background:#fff; }
+
+  /* ---- Actions ---- */
+  .actions{ display:flex; align-items:center; gap:10px; margin-top:22px; flex-wrap:wrap; }
+  .btn{
+    font:600 .92rem 'IBM Plex Sans', sans-serif; cursor:pointer;
+    border-radius:10px; padding:11px 18px; border:1.5px solid transparent;
+    transition:all .15s ease;
+  }
+  .btn-primary{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .btn-primary:hover{ background:var(--accent-d); border-color:var(--accent-d); }
+  .btn-ghost{ background:#fff; color:var(--accent); border-color:var(--line); }
+  .btn-ghost:hover{ border-color:var(--accent); }
+  .btn-text{
+    background:none; border:none; cursor:pointer; color:var(--muted);
+    font:500 .9rem 'IBM Plex Sans', sans-serif; text-decoration:underline;
+    text-underline-offset:3px; padding:6px 4px;
+  }
+  .btn-text:hover{ color:var(--accent); }
+  .spacer{ flex:1 1 auto; }
+  .score{ font:500 .85rem 'IBM Plex Mono', monospace; color:var(--muted); }
+
+  /* ---- Feedback + solution ---- */
+  .feedback{ margin-top:16px; font-weight:500; font-size:.96rem; display:none; }
+  .feedback.show{ display:block; }
+  .feedback.good{ color:var(--success); }
+  .feedback.bad{ color:var(--error); }
+  .solution{
+    display:none; margin-top:14px; padding:16px 18px;
+    background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    font-size:.95rem;
+  }
+  .solution.show{ display:block; }
+  .solution h4{
+    margin:0 0 8px; font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.08em; color:var(--muted);
+  }
+  .solution p{ margin:.4em 0; }
+
+  footer{ margin-top:30px; color:var(--muted); font-size:.82rem; text-align:center; }
+
+  @media (max-width:520px){
+    .wrap{ padding:26px 14px 60px; }
+    .actions{ gap:8px; }
+    .spacer{ flex-basis:100%; height:0; }
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .card{ animation:rise .25s ease both; }
+    @keyframes rise{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">ECO 3101 · Budget Constraints</p>
+  <header>
+    <span class="mark" aria-hidden="true">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+        <path d="M5 29V5M5 29h24" stroke="#2b5c8a" stroke-width="2" stroke-linecap="round"/>
+        <path d="M6 24C12 24 13 9 28 8" stroke="#17263a" stroke-width="2" stroke-linecap="round" fill="none"/>
+      </svg>
+    </span>
+    <h1>Lecture 3 Exercises</h1>
+  </header>
+  <p class="sub">Intermediate Microeconomic Theory. Fresh numbers every time — work it out, type your answer, check yourself.</p>
+
+  <div class="topics" id="topics" role="group" aria-label="Choose a problem type"></div>
+
+  <div class="card" id="card">
+    <div class="eyebrow"><span id="eyebrow">—</span></div>
+    <div class="prompt" id="prompt"></div>
+
+    <div class="answers" id="answers"></div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="check">Check answer</button>
+      <button class="btn btn-ghost" id="next">New question</button>
+      <button class="btn-text" id="steps">Show steps</button>
+      <span class="spacer"></span>
+      <span class="score" id="score">Solved 0</span>
+    </div>
+
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <div class="solution" id="solution"></div>
+  </div>
+
+  <footer>Ungraded self-practice. Reload for a fresh set. Built for ECO 3101.</footer>
+</div>
+
+<script>
+/* ============================ small helpers ============================ */
+const $ = (id) => document.getElementById(id);
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const randint = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+function shuffle(a){ a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const round = (x, d=6) => { const f = 10**d; return Math.round((x + Number.EPSILON) * f) / f; };
+const comma = (x) => x.toLocaleString('en-US');
+function parseNum(s){
+  if (s == null) return null;
+  s = String(s).trim().replace(/,/g,'').replace(/\s+/g,'');
+  if (s === '') return null;
+  // allow simple fractions like -3/4
+  const frac = s.match(/^(-?\d*\.?\d+)\/(-?\d*\.?\d+)$/);
+  if (frac){ const d = parseFloat(frac[2]); if (d === 0) return null; return parseFloat(frac[1]) / d; }
+  const v = Number(s);
+  return Number.isFinite(v) ? v : null;
+}
+function normTxt(s){
+  return String(s == null ? '' : s).toLowerCase()
+    .replace(/\s+/g,'').replace(/[*·×]/g,'').replace(/\\cdot/g,'')
+    .replace(/\^/g,'').replace(/\{|\}/g,'');
+}
+function typeset(){ if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); }
+
+/* ============================ state / engine ============================ */
+let current = 0;      // index into QUESTIONS
+let problem = null;   // the generated instance
+let solvedCount = 0;
+let mcPick = null;    // selected choice index for MC questions
+
+function buildTopics(){
+  const box = $('topics');
+  box.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const b = document.createElement('button');
+    b.className = 'topic' + (i === current ? ' active' : '');
+    b.textContent = q.name;
+    b.addEventListener('click', () => { current = i; syncTopics(); newProblem(); });
+    box.appendChild(b);
+  });
+}
+function syncTopics(){
+  [...$('topics').children].forEach((b, i) => b.classList.toggle('active', i === current));
+}
+
+function newProblem(){
+  problem = QUESTIONS[current].gen();
+  mcPick = null;
+  $('eyebrow').textContent = QUESTIONS[current].eyebrow || QUESTIONS[current].name;
+  $('prompt').innerHTML = problem.promptHTML;
+
+  const wrap = $('answers');
+  wrap.innerHTML = '';
+
+  if (problem.mc){
+    // multiple-choice rendering
+    const list = document.createElement('div');
+    list.className = 'choices';
+    problem.mc.options.forEach((opt, i) => {
+      const c = document.createElement('button');
+      c.className = 'choice';
+      c.dataset.idx = i;
+      c.innerHTML = `<span class="bullet">${String.fromCharCode(65+i)}</span><span>${opt}</span>`;
+      c.addEventListener('click', () => {
+        mcPick = i;
+        [...list.children].forEach(ch => ch.classList.remove('sel','ok','no'));
+        c.classList.add('sel');
+      });
+      list.appendChild(c);
+    });
+    wrap.appendChild(list);
+  } else {
+    // input-field rendering (numeric or text parts)
+    problem.parts.forEach((part, idx) => {
+      const field = document.createElement('div');
+      field.className = 'field';
+      field.innerHTML = `
+        <label>${part.label}</label>
+        <span class="inputwrap">
+          ${part.prefix ? `<span class="prefix">${part.prefix}</span>` : ''}
+          <input type="text" inputmode="${part.type === 'text' ? 'text' : 'decimal'}"
+                 autocomplete="off" data-idx="${idx}" placeholder="${part.placeholder || '?'}">
+          ${part.unit ? `<span class="unit">${part.unit}</span>` : ''}
+        </span>
+        <span class="tag"></span>`;
+      wrap.appendChild(field);
+    });
+  }
+
+  $('feedback').className = 'feedback';
+  $('feedback').textContent = '';
+  $('solution').className = 'solution';
+  $('solution').innerHTML = problem.solutionHTML;
+
+  typeset();
+  const first = wrap.querySelector('input');
+  if (first) first.focus();
+}
+
+function checkAnswers(){
+  const fb = $('feedback');
+
+  if (problem.mc){
+    const list = $('answers').querySelector('.choices');
+    if (mcPick == null){
+      fb.className = 'feedback show bad';
+      fb.textContent = 'Select an option first.';
+      return;
+    }
+    const correct = problem.mc.correct;
+    [...list.children].forEach((ch, i) => {
+      ch.classList.remove('sel','ok','no');
+      if (i === correct) ch.classList.add('ok');
+      else if (i === mcPick) ch.classList.add('no');
+    });
+    fb.className = 'feedback show';
+    if (mcPick === correct){
+      fb.classList.add('good'); fb.textContent = '\u2713 Correct.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite — the highlighted option is correct. See the steps below.';
+    }
+    return;
+  }
+
+  const inputs = [...$('answers').querySelectorAll('input')];
+  let allCorrect = true, anyBlank = false;
+
+  inputs.forEach(inp => {
+    const idx = +inp.dataset.idx;
+    const part = problem.parts[idx];
+    const field = inp.closest('.field');
+    const tag = field.querySelector('.tag');
+    field.classList.remove('ok', 'no');
+
+    if (part.type === 'text'){
+      const raw = inp.value.trim();
+      if (raw === ''){ anyBlank = true; allCorrect = false; if(tag) tag.textContent=''; return; }
+      const got = normTxt(raw);
+      const ok = part.accept.map(normTxt).includes(got);
+      if (ok){ field.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { field.classList.add('no'); if(tag) tag.textContent='try again'; allCorrect = false; }
+    } else {
+      const val = parseNum(inp.value);
+      if (val === null){ anyBlank = true; allCorrect = false; if(tag) tag.textContent=''; return; }
+      if (Math.abs(val - part.answer) <= (part.tol ?? 0.01)){ field.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { field.classList.add('no'); if(tag) tag.textContent='try again'; allCorrect = false; }
+    }
+  });
+
+  fb.className = 'feedback show';
+  if (anyBlank){
+    fb.classList.add('bad');
+    fb.textContent = 'Enter an answer in each blank.';
+  } else if (allCorrect){
+    fb.classList.add('good');
+    fb.textContent = inputs.length > 1 ? '\u2713 All correct — nice work.' : '\u2713 Correct.';
+    solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+  } else {
+    fb.classList.add('bad');
+    fb.textContent = 'Not quite — fix the highlighted blank and try again, or peek at the steps.';
+  }
+}
+
+function showSteps(){ $('solution').classList.add('show'); typeset(); }
+
+$('check').addEventListener('click', checkAnswers);
+$('next').addEventListener('click', newProblem);
+$('steps').addEventListener('click', showSteps);
+$('answers').addEventListener('keydown', (e) => { if (e.key === 'Enter') checkAnswers(); });
+
+/* =========================================================================
+   QUESTIONS — each entry is one problem type. Edit numbers inside gen().
+   ========================================================================= */
+const QUESTIONS = [
+
+  /* ----- 1. Slope of a square-root function (power rule) -----------------
+     Original Canvas Q ("Another calculus"): y = 4 sqrt(x), slope at x = 4  -> 1.
+     Generalized: y = a*sqrt(x), evaluate y' at a perfect-square x0.
+     y' = (a/2) x^{-1/2} = a/(2 sqrt(x)).  We back-solve so the slope is a
+     small integer: choose s = sqrt(x0) and target slope m, then a = 2*s*m. */
+  {
+    key: 'sqrtslope',
+    name: 'Slope of \u221ax',
+    eyebrow: 'Derivative at a point',
+    gen(){
+      // EDIT NUMBERS HERE
+      const s = pick([2, 3, 4, 5]);         // sqrt of the evaluation point
+      const m = pick([1, 2, 3]);            // target (clean) slope
+      const x0 = s * s;
+      const a = 2 * s * m;                  // coefficient, always even
+      const slope = m;                      // = a / (2*s)
+
+      const promptHTML = `
+        <p>Consider the function \\( y = ${a}\\sqrt{x} \\).
+           What is the slope of this function at \\( x = ${x0} \\)?</p>
+        <p class="hint">Hint: \\(\\sqrt{x}=x^{1/2}\\), and the derivative of \\(a\\,x^{n}\\)
+           is \\(a\\,n\\,x^{\\,n-1}\\). Also \\(x^{-1/2}=\\dfrac{1}{\\sqrt{x}}\\).</p>`;
+
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Write \\( y = ${a}\\,x^{1/2} \\). Then
+           \\( \\dfrac{dy}{dx} = ${a}\\cdot\\tfrac12\\,x^{-1/2} = ${a/2}\\,x^{-1/2}
+           = \\dfrac{${a/2}}{\\sqrt{x}} \\).</p>
+        <p>At \\( x = ${x0} \\): \\(\\sqrt{${x0}} = ${s}\\), so the slope is
+           \\( \\dfrac{${a/2}}{${s}} = \\mathbf{${slope}} \\).</p>`;
+
+      return { promptHTML, parts: [{ label: 'Slope at \\(x = '+x0+'\\)', answer: slope, tol: 0.01 }], solutionHTML };
+    }
+  },
+
+  /* ----- 2. Budget line with a composite good (py = 1) -------------------
+     Original Canvas Q ("Budget Constraint"): px = 2, I = 100, py = 1
+       -> x-intercept 50, y-intercept 100. */
+  {
+    key: 'budget',
+    name: 'Budget line',
+    eyebrow: 'Intercepts (composite good)',
+    gen(){
+      // EDIT NUMBERS HERE
+      const px = pick([2, 4, 5, 10]);                 // price per unit of good x
+      const k  = pick([10, 12, 20, 25]);              // helper so income is divisible
+      const I  = px * k;                              // weekly income
+      const xInt = I / px;                            // = k
+      const yInt = I;                                 // py = 1
+
+      const promptHTML = `
+        <p>Acme Seed Company charges \\($${px}\\)/lb of marigold seeds each week.
+           Your income is \\($${comma(I)}\\)/wk, and the price of the composite good is \\($1\\).</p>
+        <p>On a graph with marigold seeds (\\(x\\)) on the horizontal axis and the composite
+           good (\\(y\\)) on the vertical axis, give the intercepts of the budget line.</p>`;
+
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>The budget constraint is \\( ${px}x + y = ${comma(I)} \\).</p>
+        <p>x-intercept (spend everything on marigold): \\( x = \\dfrac{${comma(I)}}{${px}} = \\mathbf{${comma(xInt)}} \\).</p>
+        <p>y-intercept (spend everything on the composite good): \\( y = \\dfrac{${comma(I)}}{1} = \\mathbf{${comma(yInt)}} \\).</p>`;
+
+      return {
+        promptHTML,
+        parts: [
+          { label: 'x-intercept', answer: xInt, tol: 0.5 },
+          { label: 'y-intercept', answer: yInt, tol: 0.5 }
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 3. Budget line with two priced goods (NEW) ---------------------
+     Both goods have prices > 1.  x-int = I/px, y-int = I/py, slope = -px/py.
+     Income chosen as px*py*k so both intercepts are integers, and py in
+     {2,4,5,10} keeps the slope a terminating decimal. */
+  {
+    key: 'budget2',
+    name: 'Budget line (2 goods)',
+    eyebrow: 'Intercepts and slope',
+    gen(){
+      // EDIT NUMBERS HERE
+      const py = pick([2, 4, 5, 10]);                 // price of good y (terminating slope)
+      let px = pick([2, 3, 4, 5, 6]);                 // price of good x
+      while (px === py) px = pick([2, 3, 4, 5, 6]);
+      const k = pick([2, 3, 4]);
+      const I = px * py * k;
+      const xInt = I / px;                            // = py*k
+      const yInt = I / py;                            // = px*k
+      const slope = round(-px / py, 4);
+
+      const promptHTML = `
+        <p>A consumer buys two goods. Good \\(x\\) costs \\($${px}\\) per unit and good \\(y\\)
+           costs \\($${py}\\) per unit. Income is \\($${comma(I)}\\).</p>
+        <p>With \\(x\\) on the horizontal axis and \\(y\\) on the vertical axis, give the
+           two intercepts and the slope of the budget line.</p>
+        <p class="hint">Hint: the budget line is \\(p_x x + p_y y = I\\); its slope is \\(-p_x/p_y\\).</p>`;
+
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Budget line: \\( ${px}x + ${py}y = ${comma(I)} \\).</p>
+        <p>x-intercept: \\( \\dfrac{${comma(I)}}{${px}} = \\mathbf{${comma(xInt)}} \\);
+           y-intercept: \\( \\dfrac{${comma(I)}}{${py}} = \\mathbf{${comma(yInt)}} \\).</p>
+        <p>Slope: \\( -\\dfrac{p_x}{p_y} = -\\dfrac{${px}}{${py}} = \\mathbf{${slope}} \\).</p>`;
+
+      return {
+        promptHTML,
+        parts: [
+          { label: 'x-intercept', answer: xInt, tol: 0.5 },
+          { label: 'y-intercept', answer: yInt, tol: 0.5 },
+          { label: 'Slope of the budget line', answer: slope, tol: 0.02 }
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 4. Budget line after a price or income change (NEW) ------------
+     Composite good (py = 1). One of income / price of x changes; ask the
+     NEW intercepts.  All kept to clean integers. */
+  {
+    key: 'budgetchange',
+    name: 'Budget change',
+    eyebrow: 'Comparative statics',
+    gen(){
+      // EDIT NUMBERS HERE
+      const px = pick([2, 4, 5, 10]);
+      const k  = pick([10, 12, 20, 25]);
+      const I  = px * k;
+
+      const kind = pick(['income-double', 'income-add', 'price-fall']);
+      let desc, Ip = I, pxp = px;
+      if (kind === 'income-double'){ Ip = 2 * I; desc = `your income <strong>doubles</strong> to \\($${comma(Ip)}\\)`; }
+      else if (kind === 'income-add'){ const add = px * pick([5, 10]); Ip = I + add; desc = `your income <strong>rises</strong> to \\($${comma(Ip)}\\)`; }
+      else { pxp = px / 2; desc = `the price of good \\(x\\) <strong>falls</strong> to \\($${pxp}\\)`; }
+
+      const xInt = Ip / pxp;
+      const yInt = Ip;                                 // py = 1
+
+      const promptHTML = `
+        <p>Initially, good \\(x\\) costs \\($${px}\\) per unit, the composite good costs \\($1\\),
+           and your income is \\($${comma(I)}\\).</p>
+        <p>Now suppose ${desc} (everything else unchanged). Give the intercepts of the
+           <em>new</em> budget line (\\(x\\) horizontal, composite good vertical).</p>`;
+
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>New budget line: \\( ${pxp}x + y = ${comma(Ip)} \\).</p>
+        <p>New x-intercept: \\( \\dfrac{${comma(Ip)}}{${pxp}} = \\mathbf{${comma(xInt)}} \\).</p>
+        <p>New y-intercept: \\( \\dfrac{${comma(Ip)}}{1} = \\mathbf{${comma(yInt)}} \\).</p>`;
+
+      return {
+        promptHTML,
+        parts: [
+          { label: 'New x-intercept', answer: xInt, tol: 0.5 },
+          { label: 'New y-intercept', answer: yInt, tol: 0.5 }
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 5. Kinked budget constraint — tiered pricing -------------------
+     Original Canvas Q ("Kinked Budget Constraint"): $2/lb up to 10lb, then
+     $1/lb, income 100 -> spend 20, y-hat 80, slopes -2 then -1, +80 lb, x-int 90. */
+  {
+    key: 'kinked',
+    name: 'Kinked budget line',
+    eyebrow: 'Tiered pricing',
+    gen(){
+      // EDIT NUMBERS HERE
+      const pHi   = pick([2, 3, 4]);                   // price up to the threshold
+      const lo    = pick([1, 2].filter(v => v < pHi)); // lower price beyond it
+      const K     = pick([10, 15, 20]);                // threshold quantity (lb)
+      const extra = pick([40, 50, 60, 80, 100]);       // lb bought beyond the threshold
+
+      // Construct income so every quantity comes out clean:
+      const spend1 = pHi * K;                // spent on the first K lb
+      const yhat   = lo * extra;             // remaining budget (divisible by lo by construction)
+      const I      = spend1 + yhat;          // weekly income
+      const slope1 = -pHi;
+      const slope2 = -lo;
+      const xInt   = K + extra;              // x-intercept of the kinked line
+
+      const promptHTML = `
+        <p>Acme Seed Company applies <em>tiered pricing</em>: \\($${pHi}\\)/lb for the first
+           \\(${K}\\) lb of marigold, then \\($${lo}\\)/lb beyond that. Your income is
+           \\($${comma(I)}\\)/wk and the composite good costs \\($1\\).</p>
+        <p>Fill in the pieces used to draw the kinked budget line
+           (\\(x\\) = marigold in lb, \\(y\\) = composite good).</p>`;
+
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Buying the first \\(${K}\\) lb costs \\(${pHi}\\times ${K} = \\mathbf{${comma(spend1)}}\\),
+           leaving \\(\\hat{y} = ${comma(I)} - ${comma(spend1)} = \\mathbf{${comma(yhat)}}\\) for the
+           composite good, so the line passes through \\((${K},\\,${comma(yhat)})\\).</p>
+        <p>Up to the kink the slope is \\(-p_1 = \\mathbf{${slope1}}\\); beyond it the slope is
+           \\(-p_2 = \\mathbf{${slope2}}\\).</p>
+        <p>Spending the remaining \\(${comma(yhat)}\\) at \\($${lo}\\)/lb buys
+           \\(\\dfrac{${comma(yhat)}}{${lo}} = \\mathbf{${comma(extra)}}\\) more lb, so the
+           x-intercept is \\(${K} + ${comma(extra)} = \\mathbf{${comma(xInt)}}\\).</p>`;
+
+      return {
+        promptHTML,
+        parts: [
+          { label: 'Spent on the first '+K+' lb', prefix: '$', answer: spend1, tol: 0.5 },
+          { label: '\\(\\hat{y}\\) left for the composite good', prefix: '$', answer: yhat, tol: 0.5 },
+          { label: 'Slope before the kink', answer: slope1, tol: 0.01 },
+          { label: 'Slope after the kink', answer: slope2, tol: 0.01 },
+          { label: 'Extra lb bought beyond '+K, answer: extra, tol: 0.5, unit: 'lb' },
+          { label: 'x-intercept of the kinked line', answer: xInt, tol: 0.5 }
+        ],
+        solutionHTML
+      };
+    }
+  }
+
+];
+
+/* ---- Startup ----
+   Primary path: MathJax's pageReady hook calls boot() once math is ready.
+   Fallback: if MathJax can't load (offline), still show questions after 3s. */
+let booted = false;
+function boot(){ if (booted) return; booted = true; buildTopics(); newProblem(); }
+setTimeout(() => { if (!booted) boot(); }, 3000);
+</script>
+</body>
+</html>

@@ -1,0 +1,491 @@
+<!--
+  ============================================================================
+  LECTURE 2 EXERCISES — Intermediate Microeconomics (ECO 3101)
+  ============================================================================
+  This is ONE self-contained file. No installation, no server.
+  - Double-click it to open in a browser and try it.
+  - Later, drop it into a GitHub repo to publish it for students.
+
+  HOW IT'S ORGANIZED (for editing later):
+  - All the math/questions live in the QUESTIONS array near the bottom of the
+    <script>. Each entry is one "problem type." To change the random ranges,
+    edit the numbers inside its gen() function — look for "EDIT NUMBERS HERE".
+  - The ORDER of the topic buttons = the order of entries in QUESTIONS.
+    Rearrange the blocks to reorder the buttons. Delete a block to remove a topic.
+  - To add a new problem type, copy one block and adjust it.
+  - The look (colors/fonts) is in the <style> block; you can ignore it.
+  ============================================================================
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lecture 1 Exercises — Intermediate Microeconomics</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- MathJax renders the LaTeX math. We boot the app from its pageReady hook. -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(', '\\)'], ['$', '$']], displayMath: [['$$', '$$']] },
+    svg: { fontCache: 'global' },
+    startup: {
+      typeset: false,
+      pageReady: () => MathJax.startup.defaultPageReady().then(() => boot())
+    }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+
+<style>
+  :root{
+    --paper:#eef1f5; --grid:#e0e5ec; --card:#ffffff;
+    --ink:#17263a; --muted:#5d6b7c; --line:#dde3ea;
+    --accent:#2b5c8a; --accent-d:#1f456a;
+    --success:#2f7a52; --success-bg:#eaf4ee;
+    --error:#b0432e; --error-bg:#f7ece9;
+    --shadow:0 1px 2px rgba(23,38,58,.05), 0 12px 30px rgba(23,38,58,.07);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    font-family:'IBM Plex Sans', system-ui, sans-serif; color:var(--ink);
+    background-color:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:26px 26px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{ max-width:740px; margin:0 auto; padding:40px 20px 80px; }
+
+  .kicker{
+    font:600 .72rem/1 'IBM Plex Mono', monospace; text-transform:uppercase;
+    letter-spacing:.13em; color:var(--accent); margin:0 0 10px;
+  }
+  header{ display:flex; align-items:center; gap:14px; margin-bottom:6px; }
+  .mark{ flex:0 0 auto; } .mark svg{ display:block; }
+  h1{
+    font-family:'IBM Plex Serif', Georgia, serif; font-weight:600;
+    font-size:1.6rem; letter-spacing:-.01em; margin:0; line-height:1.12;
+  }
+  .sub{ color:var(--muted); font-size:.92rem; margin:4px 0 26px; }
+
+  .topics{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px; }
+  .topic{
+    font:500 .82rem/1 'IBM Plex Sans', sans-serif; color:var(--muted);
+    background:transparent; border:1px solid var(--line); border-radius:999px;
+    padding:9px 15px; cursor:pointer; transition:.15s;
+  }
+  .topic:hover{ border-color:var(--accent); color:var(--accent); }
+  .topic[aria-pressed="true"]{ background:var(--ink); border-color:var(--ink); color:#fff; }
+
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    box-shadow:var(--shadow); padding:26px 26px 22px; position:relative;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font:600 .72rem/1 'IBM Plex Mono', monospace; text-transform:uppercase;
+    letter-spacing:.09em; color:var(--accent); margin-bottom:14px;
+  }
+  .prompt{ font-size:1.04rem; } .prompt p{ margin:0 0 .7em; }
+  .prompt .hint{
+    color:var(--muted); font-size:.9rem; border-left:2px solid var(--line);
+    padding-left:12px; margin-top:14px;
+  }
+  mjx-container{ overflow-x:auto; overflow-y:hidden; }
+
+  .answers{ margin-top:22px; display:flex; flex-direction:column; gap:14px; }
+  .field label{ display:block; font-weight:500; font-size:.92rem; margin-bottom:6px; }
+  .inputrow{ display:flex; align-items:stretch; max-width:340px; }
+  .inputrow input{
+    flex:1; min-width:0; font:500 1rem 'IBM Plex Mono', monospace; color:var(--ink);
+    padding:11px 13px; border:1.5px solid var(--line); border-radius:9px;
+    background:#fff; transition:.15s;
+  }
+  .inputrow input:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(43,92,138,.15); }
+  .inputrow .unit{
+    display:flex; align-items:center; padding:0 12px; margin-left:8px;
+    font:500 .85rem 'IBM Plex Mono', monospace; color:var(--muted);
+    background:var(--paper); border:1px solid var(--line); border-radius:9px; white-space:nowrap;
+  }
+  .field.ok input{ border-color:var(--success); background:var(--success-bg); }
+  .field.no input{ border-color:var(--error); }
+
+  .actions{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:22px; }
+  button{ font-family:'IBM Plex Sans', sans-serif; cursor:pointer; }
+  .btn{ font-weight:600; font-size:.92rem; padding:11px 20px; border-radius:9px; border:1.5px solid transparent; transition:.15s; }
+  .btn-primary{ background:var(--accent); color:#fff; } .btn-primary:hover{ background:var(--accent-d); }
+  .btn-ghost{ background:transparent; border-color:var(--line); color:var(--ink); }
+  .btn-ghost:hover{ border-color:var(--accent); color:var(--accent); }
+  .btn-text{ background:none; border:none; color:var(--muted); font-size:.88rem; text-decoration:underline; text-underline-offset:3px; padding:6px 4px; }
+  .btn-text:hover{ color:var(--accent); }
+  .spacer{ flex:1; }
+  .score{ font:500 .85rem 'IBM Plex Mono', monospace; color:var(--muted); }
+
+  .feedback{ margin-top:16px; font-weight:500; font-size:.96rem; display:none; }
+  .feedback.show{ display:block; }
+  .feedback.good{ color:var(--success); } .feedback.bad{ color:var(--error); }
+  .solution{
+    display:none; margin-top:14px; padding:16px 18px; background:var(--paper);
+    border:1px solid var(--line); border-radius:10px; font-size:.95rem;
+  }
+  .solution.show{ display:block; }
+  .solution h4{ margin:0 0 8px; font:600 .72rem/1 'IBM Plex Mono', monospace; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
+  .solution p{ margin:.4em 0; }
+
+  footer{ margin-top:30px; color:var(--muted); font-size:.82rem; text-align:center; }
+
+  @media (max-width:520px){ .wrap{ padding:26px 14px 60px; } .actions{ gap:8px; } .spacer{ flex-basis:100%; height:0; } }
+  @media (prefers-reduced-motion:no-preference){
+    .card{ animation:rise .25s ease both; }
+    @keyframes rise{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">ECO 3101 · Supply &amp; Demand</p>
+  <header>
+    <span class="mark" aria-hidden="true">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+        <path d="M5 29V5M5 29h24" stroke="#2b5c8a" stroke-width="2" stroke-linecap="round"/>
+        <path d="M6 24C12 24 13 9 28 8" stroke="#17263a" stroke-width="2" stroke-linecap="round" fill="none"/>
+      </svg>
+    </span>
+    <h1>Lecture 1 Exercises</h1>
+  </header>
+  <p class="sub">Intermediate Microeconomic Theory. Fresh numbers every time — work it out, type your answer, check yourself.</p>
+
+  <div class="topics" id="topics" role="group" aria-label="Choose a problem type"></div>
+
+  <div class="card" id="card">
+    <div class="eyebrow"><span id="eyebrow">—</span></div>
+    <div class="prompt" id="prompt"></div>
+    <div class="answers" id="answers"></div>
+    <div class="actions">
+      <button class="btn btn-primary" id="check">Check answer</button>
+      <button class="btn btn-ghost" id="next">New question</button>
+      <button class="btn-text" id="steps">Show steps</button>
+      <span class="spacer"></span>
+      <span class="score" id="score">Solved 0</span>
+    </div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <div class="solution" id="solution"></div>
+  </div>
+
+  <footer>Ungraded self-practice. Nothing is recorded — refresh for a clean slate.</footer>
+</div>
+
+<script>
+/* ===========================================================================
+   1) SMALL HELPERS
+   =========================================================================== */
+const $ = (id) => document.getElementById(id);
+const randInt = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const comma = (n) => n.toLocaleString('en-US');
+
+// kill floating-point noise like 0.30000000000000004
+const round6 = (x) => Math.round(x * 1e6) / 1e6;
+// format a number cleanly for display (0.3, 1.5, -0.2, 6 ...)
+const nf = (x) => { const r = round6(x); return Number.isInteger(r) ? String(r) : String(parseFloat(r.toFixed(4))); };
+
+// Build a polynomial as LaTeX from terms [{c: coefficient, t: 'x^{2}' | 'Q' | ''}].
+// Handles signs, coefficients of 1, and zero terms.
+function poly(terms){
+  let s = '';
+  terms.forEach(term => {
+    const c = round6(term.c);
+    if (c === 0) return;
+    const neg = c < 0, mag = Math.abs(c);
+    const coef = (mag === 1 && term.t !== '') ? '' : nf(mag);  // hide "1" before a variable
+    if (s === '') s += (neg ? '-' : '') + coef + term.t;
+    else s += (neg ? ' - ' : ' + ') + coef + term.t;
+  });
+  return s === '' ? '0' : s;
+}
+
+// Turn what a student typed into a number. Accepts "10,000", " $500 ", "4.0", "-0.2", unicode minus.
+function parseNum(raw){
+  if (raw == null) return null;
+  const cleaned = String(raw).replace(/\u2212/g, '-').replace(/[\s,$]/g, '');
+  if (cleaned === '') return null;
+  const v = Number(cleaned);
+  return Number.isFinite(v) ? v : null;
+}
+
+/* ===========================================================================
+   2) THE QUESTIONS  (order here = order of the topic buttons)
+   Each gen() returns: { promptHTML, parts:[{label,unit,answer,tol}], solutionHTML }
+   Edit pools marked "EDIT NUMBERS HERE".
+   =========================================================================== */
+const QUESTIONS = [
+
+  /* ----- Market equilibrium (linear supply & demand) --------------------
+     Covers Canvas Q1 (P=2+3Q vs P=10-Q) and Q2 (P=4Q vs P=12-2Q). */
+  {
+    key: 'equilibrium',
+    name: 'Market equilibrium',
+    eyebrow: 'Supply = demand',
+    gen(){
+      // EDIT NUMBERS HERE
+      const b = pick([1, 2, 3, 4]);        // supply slope
+      const d = pick([1, 2, 3]);           // demand slope
+      const a = pick([0, 1, 2, 3, 4]);     // supply intercept (0 = curve through origin)
+      const Qstar = pick([2, 3, 4, 5, 6, 8]); // equilibrium quantity
+      const c = a + (b + d) * Qstar;       // demand intercept (back-solved to keep Q* whole)
+      const Pstar = a + b * Qstar;         // equilibrium price
+
+      const bShow = (b === 1 ? '' : b);
+      const dShow = (d === 1 ? '' : d);
+      const supply = (a === 0) ? `P = ${bShow}Q_S` : `P = ${a} + ${bShow}Q_S`;
+      const demand = `P = ${c} - ${dShow}Q_D`;
+      const leftSet = (a === 0) ? `${bShow}Q` : `${a} + ${bShow}Q`;
+      const supplyEval = (a === 0) ? `${b}\\times ${Qstar}` : `${a} + ${b}\\times ${Qstar}`;
+
+      const promptHTML = `
+        <p>The supply curve is \\( ${supply} \\) and the demand curve is \\( ${demand} \\).</p>
+        <p>In equilibrium, \\(Q_S = Q_D\\). Find the equilibrium quantity \\(Q^{*}\\) and the
+           equilibrium price \\(P^{*}\\).</p>
+        <p class="hint">Hint: set supply equal to demand, \\(${leftSet} = ${c} - ${dShow}Q\\),
+           solve for \\(Q^{*}\\), then plug it back in to get \\(P^{*}\\).</p>`;
+
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Set supply = demand: \\(${leftSet} = ${c} - ${dShow}Q\\).</p>
+        <p>Collect terms: \\(${b + d}\\,Q = ${c - a} \\;\\Rightarrow\\; Q^{*} = \\dfrac{${c - a}}{${b + d}} = \\mathbf{${Qstar}}\\).</p>
+        <p>Then \\(P^{*} = ${supplyEval} = \\mathbf{${Pstar}}\\).</p>`;
+
+      return {
+        promptHTML,
+        parts: [
+          { label:'Equilibrium quantity  \\(Q^{*}\\)', unit:'units', answer:Qstar, tol:0.5 },
+          { label:'Equilibrium price  \\(P^{*}\\)',     unit:'$',     answer:Pstar, tol:0.5 }
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- Quantity-form supply & demand (solve the 2x2 system) ------------
+     Demand & supply written as Q as a function of P (the other standard form). */
+  {
+    key: 'qform',
+    name: 'Quantity-form S&D',
+    eyebrow: 'Solve for (P*, Q*)',
+    gen(){
+      // EDIT NUMBERS HERE
+      const b = pick([1, 2, 3, 4]);            // demand slope (on P)
+      const d = pick([1, 2, 3]);               // supply slope (on P)
+      const Pstar = pick([4, 5, 6, 8, 10, 12]);
+      const Qstar = pick([10, 12, 15, 18, 20, 24, 30]);
+      const a = Qstar + b * Pstar;             // demand intercept:  Q_D = a - bP
+      const c = Qstar - d * Pstar;             // supply intercept:  Q_S = c + dP (may be < 0)
+
+      const bShow = (b === 1 ? '' : b);
+      const supply = poly([{c:d, t:'P'}, {c:c, t:''}]);   // e.g. "2P - 10" or "2P + 5" or "2P"
+
+      const promptHTML = `
+        <p>Demand and supply are given in quantity form:
+           $$Q_D = ${a} - ${bShow}P, \\qquad Q_S = ${supply}.$$</p>
+        <p>In equilibrium \\(Q_D = Q_S\\). Find the equilibrium price \\(P^{*}\\) and
+           quantity \\(Q^{*}\\).</p>
+        <p class="hint">Hint: set \\(Q_D = Q_S\\), solve that single equation for \\(P^{*}\\),
+           then substitute back to get \\(Q^{*}\\).</p>`;
+
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Set \\(Q_D = Q_S\\): &nbsp; \\(${a} - ${bShow}P = ${supply}\\).</p>
+        <p>Collect terms: \\(${b + d}\\,P = ${a - c} \\;\\Rightarrow\\; P^{*} = \\dfrac{${a - c}}{${b + d}} = \\mathbf{${Pstar}}\\).</p>
+        <p>Then \\(Q^{*} = ${a} - ${bShow}\\times ${Pstar} = \\mathbf{${Qstar}}\\).</p>`;
+
+      return {
+        promptHTML,
+        parts: [
+          { label:'Equilibrium price  \\(P^{*}\\)',    unit:'$',     answer:Pstar, tol:0.5 },
+          { label:'Equilibrium quantity  \\(Q^{*}\\)', unit:'units', answer:Qstar, tol:0.5 }
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- Two-equation system in general form (solve by elimination) ------
+     Demand & supply reduced to a linear system; eliminate a variable. */
+  {
+    key: 'system',
+    name: 'Two-equation system',
+    eyebrow: 'Solve the 2x2 system',
+    gen(){
+      // EDIT NUMBERS HERE
+      const b1 = pick([1, 2, 3]);              // demand:  P + b1 Q = c1   (downward)
+      const b2 = pick([-1, -2, -3]);           // supply:  P + b2 Q = c2   (upward)
+      const Pstar = pick([3, 4, 5, 6, 8, 10]);
+      const Qstar = pick([2, 3, 4, 5, 6, 8]);
+      const c1 = Pstar + b1 * Qstar;
+      const c2 = Pstar + b2 * Qstar;
+
+      const term = (co) => (Math.abs(co) === 1 ? '' : Math.abs(co)) + 'Q';
+      const eq1 = `P + ${term(b1)} = ${c1}`;                       // b1 > 0
+      const eq2 = `P - ${term(b2)} = ${c2}`;                       // b2 < 0, so "-"
+      const subTerm = (Math.abs(b1) === 1) ? `${Qstar}` : `${Math.abs(b1)}\\times ${Qstar}`;
+
+      const promptHTML = `
+        <p>A market's demand and supply reduce to the system
+           $$\\begin{cases} ${eq1} \\\\ ${eq2} \\end{cases}$$</p>
+        <p>Solve the system for the equilibrium price \\(P^{*}\\) and quantity \\(Q^{*}\\).</p>
+        <p class="hint">Hint: subtract the second equation from the first to eliminate \\(P\\),
+           solve for \\(Q^{*}\\), then back-substitute for \\(P^{*}\\).</p>`;
+
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Subtract equation 2 from equation 1 to eliminate \\(P\\):
+           \\((${b1} - (${b2}))\\,Q = ${c1} - ${c2}\\), i.e. \\(${b1 - b2}\\,Q = ${c1 - c2}\\).</p>
+        <p>\\(Q^{*} = \\dfrac{${c1 - c2}}{${b1 - b2}} = \\mathbf{${Qstar}}\\).</p>
+        <p>Back-substitute into equation 1: \\(P^{*} = ${c1} - ${subTerm} = \\mathbf{${Pstar}}\\).</p>`;
+
+      return {
+        promptHTML,
+        parts: [
+          { label:'Equilibrium price  \\(P^{*}\\)',    unit:'$',     answer:Pstar, tol:0.5 },
+          { label:'Equilibrium quantity  \\(Q^{*}\\)', unit:'units', answer:Qstar, tol:0.5 }
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- Fixed (vertical) supply -----------------------------------------
+     Covers Canvas Q3 (FSU tickets: P = 1000 - (1/50)Q, supply fixed at 15,000). */
+  {
+    key: 'fixedsupply',
+    name: 'Fixed supply',
+    eyebrow: 'Vertical supply',
+    gen(){
+      // EDIT NUMBERS HERE
+      const k = pick([20, 25, 50, 100]);                 // demand slope is 1/k
+      const Qbar = pick([10000, 12000, 15000, 20000]);   // fixed supply (divisible by k)
+      const Pstar = pick([400, 500, 600, 700, 800]);     // equilibrium price
+      const A = Pstar + Qbar / k;                         // demand intercept
+
+      const promptHTML = `
+        <p>Demand for FSU football season tickets is
+           \\( P = ${comma(A)} - \\frac{1}{${k}}\\,Q \\), and supply is fixed at
+           \\( Q = ${comma(Qbar)} \\).</p>
+        <p>What is the equilibrium price?</p>
+        <p class="hint">Hint: with supply fixed, the equilibrium quantity is just
+           \\(${comma(Qbar)}\\). Plug it into the demand curve to get the price.</p>`;
+
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Plug \\(Q = ${comma(Qbar)}\\) into demand:</p>
+        <p>\\(P^{*} = ${comma(A)} - \\frac{1}{${k}}\\times ${comma(Qbar)} = ${comma(A)} - ${comma(Qbar / k)} = \\mathbf{${comma(Pstar)}}\\).</p>`;
+
+      return { promptHTML, parts:[{ label:'Equilibrium price', unit:'$', answer:Pstar, tol:0.5 }], solutionHTML };
+    }
+  }
+
+];
+
+/* ===========================================================================
+   3) THE ENGINE  (you shouldn't need to touch this to add questions)
+   =========================================================================== */
+let current = QUESTIONS[0];
+let problem = null;
+let solvedCount = 0;
+
+const topicsEl = $('topics');
+QUESTIONS.forEach((q, i) => {
+  const b = document.createElement('button');
+  b.className = 'topic';
+  b.textContent = q.name;
+  b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+  b.addEventListener('click', () => {
+    current = q;
+    [...topicsEl.children].forEach(c => c.setAttribute('aria-pressed', 'false'));
+    b.setAttribute('aria-pressed', 'true');
+    newProblem();
+  });
+  topicsEl.appendChild(b);
+});
+
+function typeset(){ if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); }
+
+function newProblem(){
+  problem = current.gen();
+  $('eyebrow').textContent = current.eyebrow;
+  $('prompt').innerHTML = problem.promptHTML;
+
+  const wrap = $('answers');
+  wrap.innerHTML = '';
+  problem.parts.forEach((part, idx) => {
+    const aria = part.label.replace(/\\\(|\\\)|\\frac|\\pi|[\^{}*]/g, '').trim();
+    const field = document.createElement('div');
+    field.className = 'field';
+    field.innerHTML = `
+      <label>${part.label}</label>
+      <div class="inputrow">
+        <input type="text" inputmode="text" autocomplete="off" data-idx="${idx}" aria-label="${aria}">
+        ${part.unit ? `<span class="unit">${part.unit}</span>` : ''}
+      </div>`;
+    wrap.appendChild(field);
+  });
+
+  $('feedback').className = 'feedback';
+  $('feedback').textContent = '';
+  $('solution').className = 'solution';
+  $('solution').innerHTML = problem.solutionHTML;
+
+  typeset();
+  const first = wrap.querySelector('input');
+  if (first) first.focus();
+}
+
+function checkAnswers(){
+  const inputs = [...$('answers').querySelectorAll('input')];
+  let allCorrect = true, anyBlank = false;
+
+  inputs.forEach(inp => {
+    const idx = +inp.dataset.idx;
+    const part = problem.parts[idx];
+    const val = parseNum(inp.value);
+    const field = inp.closest('.field');
+    field.classList.remove('ok', 'no');
+    if (val === null){ anyBlank = true; allCorrect = false; return; }
+    if (Math.abs(val - part.answer) <= (part.tol ?? 0.01)) field.classList.add('ok');
+    else { field.classList.add('no'); allCorrect = false; }
+  });
+
+  const fb = $('feedback');
+  fb.className = 'feedback show';
+  if (anyBlank){
+    fb.classList.add('bad'); fb.textContent = 'Enter a number in each blank.';
+  } else if (allCorrect){
+    fb.classList.add('good');
+    fb.textContent = problem.parts.length > 1 ? '\u2713 All correct — nice work.' : '\u2713 Correct.';
+    solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+  } else {
+    fb.classList.add('bad');
+    fb.textContent = 'Not quite — fix the highlighted blank and try again, or peek at the steps.';
+  }
+}
+
+function showSteps(){ $('solution').classList.add('show'); typeset(); }
+
+$('check').addEventListener('click', checkAnswers);
+$('next').addEventListener('click', newProblem);
+$('steps').addEventListener('click', showSteps);
+$('answers').addEventListener('keydown', (e) => { if (e.key === 'Enter') checkAnswers(); });
+
+/* ---- Startup: MathJax pageReady calls boot(); 3s fallback if offline ---- */
+let booted = false;
+function boot(){ if (booted) return; booted = true; newProblem(); }
+setTimeout(() => { if (!booted) boot(); }, 3000);
+</script>
+</body>
+</html>

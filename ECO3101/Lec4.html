@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  ECO 3101 — Interactive practice page.  Self-contained: one HTML file.
+  No installation, no server. Double-click to open; drop into a GitHub repo
+  to publish for students.
+
+  HOW IT'S ORGANIZED (for editing later):
+  - All the math/questions live in the QUESTIONS array near the bottom of the
+    <script>. Each entry is one "problem type." To change the random ranges,
+    edit the numbers inside its gen() function — look for "EDIT NUMBERS HERE".
+  - To add a new problem type, copy one block and adjust it.
+  - The look (colors/fonts) is in the <style> block; you can ignore it.
+  ============================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lecture 4 Exercises — Intermediate Microeconomics</title>
+
+<!-- Fonts: IBM Plex family (academic/technical feel) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- MathJax: renders the LaTeX math. Loads from a CDN; needs internet.
+     We boot the app from MathJax's pageReady hook (see config below). -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(', '\\)'], ['$', '$']], displayMath: [['$$', '$$']] },
+    svg: { fontCache: 'global' },
+    startup: {
+      typeset: false,
+      pageReady: () => MathJax.startup.defaultPageReady().then(() => boot())
+    }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+
+<style>
+  :root{
+    --paper:#eef1f5;        /* page background (cool soft white) */
+    --grid:#e0e5ec;         /* faint graph-paper lines */
+    --card:#ffffff;
+    --ink:#17263a;          /* primary text: deep slate-navy */
+    --muted:#5d6b7c;        /* secondary text */
+    --line:#dde3ea;         /* hairlines / borders */
+    --accent:#2b5c8a;       /* scholarly blue */
+    --accent-d:#1f456a;
+    --success:#2f7a52;
+    --success-bg:#eaf4ee;
+    --error:#b0432e;
+    --error-bg:#f7ece9;
+    --shadow:0 1px 2px rgba(23,38,58,.05), 0 12px 30px rgba(23,38,58,.07);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    color:var(--ink);
+    background-color:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:26px 26px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{ max-width:740px; margin:0 auto; padding:40px 20px 80px; }
+
+  /* ---- Header ---- */
+  .kicker{
+    font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.13em;
+    color:var(--accent); margin:0 0 10px;
+  }
+  header{ display:flex; align-items:center; gap:14px; margin-bottom:6px; }
+  .mark{ flex:0 0 auto; }
+  .mark svg{ display:block; }
+  h1{
+    font-family:'IBM Plex Serif', Georgia, serif;
+    font-weight:600; font-size:1.7rem; margin:0; letter-spacing:.01em;
+  }
+  .sub{ color:var(--muted); margin:.4em 0 26px; font-size:1rem; }
+
+  /* ---- Topic selector ---- */
+  .topics{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+  .topic{
+    font:500 .85rem/1 'IBM Plex Sans', sans-serif;
+    color:var(--muted); background:var(--card);
+    border:1px solid var(--line); border-radius:999px;
+    padding:8px 15px; cursor:pointer; transition:all .15s ease;
+  }
+  .topic:hover{ border-color:var(--accent); color:var(--accent); }
+  .topic.active{
+    background:var(--accent); border-color:var(--accent);
+    color:#fff; box-shadow:0 4px 12px rgba(43,92,138,.22);
+  }
+
+  /* ---- Card ---- */
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:26px 26px 22px; box-shadow:var(--shadow);
+  }
+  .eyebrow{
+    font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.1em; color:var(--accent);
+    margin-bottom:12px; display:flex; align-items:center; gap:8px;
+  }
+  .prompt{ font-size:1.05rem; }
+  .prompt p{ margin:.5em 0; }
+  .prompt .hint{
+    color:var(--muted); font-size:.92rem;
+    border-left:3px solid var(--line); padding-left:12px; margin-top:14px;
+  }
+
+  /* ---- Answer fields ---- */
+  .answers{ margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+  .field{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .field label{ font-size:.95rem; color:var(--ink); min-width:0; }
+  .field .inputwrap{ display:inline-flex; align-items:center; gap:6px; }
+  .field .prefix{ color:var(--muted); font-family:'IBM Plex Mono', monospace; }
+  .field input{
+    width:130px; font:500 1rem 'IBM Plex Mono', monospace;
+    color:var(--ink); background:var(--paper);
+    border:1.5px solid var(--line); border-radius:9px; padding:9px 11px;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .field input:focus{ outline:none; border-color:var(--accent); background:#fff; }
+  .field .unit{ color:var(--muted); font-size:.9rem; }
+  .field.ok input{ border-color:var(--success); background:var(--success-bg); }
+  .field.no input{ border-color:var(--error); background:var(--error-bg); }
+  .field .tag{
+    font:600 .68rem/1 'IBM Plex Mono', monospace; text-transform:uppercase;
+    letter-spacing:.06em; padding:3px 7px; border-radius:6px; opacity:0;
+  }
+  .field.ok .tag{ opacity:1; color:var(--success); background:var(--success-bg); }
+  .field.no .tag{ opacity:1; color:var(--error); background:var(--error-bg); }
+
+  /* ---- Multiple choice ---- */
+  .choices{ margin-top:20px; display:flex; flex-direction:column; gap:10px; }
+  .choice{
+    text-align:left; font:500 1rem 'IBM Plex Sans', sans-serif; color:var(--ink);
+    background:var(--paper); border:1.5px solid var(--line); border-radius:11px;
+    padding:13px 16px; cursor:pointer; transition:all .13s ease;
+    display:flex; align-items:center; gap:12px;
+  }
+  .choice:hover{ border-color:var(--accent); }
+  .choice .bullet{
+    flex:0 0 auto; width:22px; height:22px; border-radius:50%;
+    border:1.5px solid var(--line); display:inline-flex; align-items:center;
+    justify-content:center; font:600 .8rem 'IBM Plex Mono', monospace; color:var(--muted);
+  }
+  .choice.sel{ border-color:var(--accent); background:#fff; box-shadow:0 3px 10px rgba(43,92,138,.14); }
+  .choice.sel .bullet{ border-color:var(--accent); color:var(--accent); }
+  .choice.ok{ border-color:var(--success); background:var(--success-bg); }
+  .choice.ok .bullet{ border-color:var(--success); color:var(--success); background:#fff; }
+  .choice.no{ border-color:var(--error); background:var(--error-bg); }
+  .choice.no .bullet{ border-color:var(--error); color:var(--error); background:#fff; }
+
+  /* ---- Actions ---- */
+  .actions{ display:flex; align-items:center; gap:10px; margin-top:22px; flex-wrap:wrap; }
+  .btn{
+    font:600 .92rem 'IBM Plex Sans', sans-serif; cursor:pointer;
+    border-radius:10px; padding:11px 18px; border:1.5px solid transparent;
+    transition:all .15s ease;
+  }
+  .btn-primary{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .btn-primary:hover{ background:var(--accent-d); border-color:var(--accent-d); }
+  .btn-ghost{ background:#fff; color:var(--accent); border-color:var(--line); }
+  .btn-ghost:hover{ border-color:var(--accent); }
+  .btn-text{
+    background:none; border:none; cursor:pointer; color:var(--muted);
+    font:500 .9rem 'IBM Plex Sans', sans-serif; text-decoration:underline;
+    text-underline-offset:3px; padding:6px 4px;
+  }
+  .btn-text:hover{ color:var(--accent); }
+  .spacer{ flex:1 1 auto; }
+  .score{ font:500 .85rem 'IBM Plex Mono', monospace; color:var(--muted); }
+
+  /* ---- Feedback + solution ---- */
+  .feedback{ margin-top:16px; font-weight:500; font-size:.96rem; display:none; }
+  .feedback.show{ display:block; }
+  .feedback.good{ color:var(--success); }
+  .feedback.bad{ color:var(--error); }
+  .solution{
+    display:none; margin-top:14px; padding:16px 18px;
+    background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    font-size:.95rem;
+  }
+  .solution.show{ display:block; }
+  .solution h4{
+    margin:0 0 8px; font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.08em; color:var(--muted);
+  }
+  .solution p{ margin:.4em 0; }
+
+  footer{ margin-top:30px; color:var(--muted); font-size:.82rem; text-align:center; }
+
+  @media (max-width:520px){
+    .wrap{ padding:26px 14px 60px; }
+    .actions{ gap:8px; }
+    .spacer{ flex-basis:100%; height:0; }
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .card{ animation:rise .25s ease both; }
+    @keyframes rise{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">ECO 3101 · Preferences &amp; Utility</p>
+  <header>
+    <span class="mark" aria-hidden="true">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+        <path d="M5 29V5M5 29h24" stroke="#2b5c8a" stroke-width="2" stroke-linecap="round"/>
+        <path d="M6 24C12 24 13 9 28 8" stroke="#17263a" stroke-width="2" stroke-linecap="round" fill="none"/>
+      </svg>
+    </span>
+    <h1>Lecture 4 Exercises</h1>
+  </header>
+  <p class="sub">Intermediate Microeconomic Theory. Fresh numbers every time — work it out, type your answer, check yourself.</p>
+
+  <div class="topics" id="topics" role="group" aria-label="Choose a problem type"></div>
+
+  <div class="card" id="card">
+    <div class="eyebrow"><span id="eyebrow">—</span></div>
+    <div class="prompt" id="prompt"></div>
+
+    <div class="answers" id="answers"></div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="check">Check answer</button>
+      <button class="btn btn-ghost" id="next">New question</button>
+      <button class="btn-text" id="steps">Show steps</button>
+      <span class="spacer"></span>
+      <span class="score" id="score">Solved 0</span>
+    </div>
+
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <div class="solution" id="solution"></div>
+  </div>
+
+  <footer>Ungraded self-practice. Reload for a fresh set. Built for ECO 3101.</footer>
+</div>
+
+<script>
+/* ============================ small helpers ============================ */
+const $ = (id) => document.getElementById(id);
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const randint = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+function shuffle(a){ a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const round = (x, d=6) => { const f = 10**d; return Math.round((x + Number.EPSILON) * f) / f; };
+const comma = (x) => x.toLocaleString('en-US');
+function parseNum(s){
+  if (s == null) return null;
+  s = String(s).trim().replace(/,/g,'').replace(/\s+/g,'');
+  if (s === '') return null;
+  // allow simple fractions like -3/4
+  const frac = s.match(/^(-?\d*\.?\d+)\/(-?\d*\.?\d+)$/);
+  if (frac){ const d = parseFloat(frac[2]); if (d === 0) return null; return parseFloat(frac[1]) / d; }
+  const v = Number(s);
+  return Number.isFinite(v) ? v : null;
+}
+function normTxt(s){
+  return String(s == null ? '' : s).toLowerCase()
+    .replace(/\s+/g,'').replace(/[*·×]/g,'').replace(/\\cdot/g,'')
+    .replace(/\^/g,'').replace(/\{|\}/g,'');
+}
+function typeset(){ if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); }
+
+/* ============================ state / engine ============================ */
+let current = 0;      // index into QUESTIONS
+let problem = null;   // the generated instance
+let solvedCount = 0;
+let mcPick = null;    // selected choice index for MC questions
+
+function buildTopics(){
+  const box = $('topics');
+  box.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const b = document.createElement('button');
+    b.className = 'topic' + (i === current ? ' active' : '');
+    b.textContent = q.name;
+    b.addEventListener('click', () => { current = i; syncTopics(); newProblem(); });
+    box.appendChild(b);
+  });
+}
+function syncTopics(){
+  [...$('topics').children].forEach((b, i) => b.classList.toggle('active', i === current));
+}
+
+function newProblem(){
+  problem = QUESTIONS[current].gen();
+  mcPick = null;
+  $('eyebrow').textContent = QUESTIONS[current].eyebrow || QUESTIONS[current].name;
+  $('prompt').innerHTML = problem.promptHTML;
+
+  const wrap = $('answers');
+  wrap.innerHTML = '';
+
+  if (problem.mc){
+    // multiple-choice rendering
+    const list = document.createElement('div');
+    list.className = 'choices';
+    problem.mc.options.forEach((opt, i) => {
+      const c = document.createElement('button');
+      c.className = 'choice';
+      c.dataset.idx = i;
+      c.innerHTML = `<span class="bullet">${String.fromCharCode(65+i)}</span><span>${opt}</span>`;
+      c.addEventListener('click', () => {
+        mcPick = i;
+        [...list.children].forEach(ch => ch.classList.remove('sel','ok','no'));
+        c.classList.add('sel');
+      });
+      list.appendChild(c);
+    });
+    wrap.appendChild(list);
+  } else {
+    // input-field rendering (numeric or text parts)
+    problem.parts.forEach((part, idx) => {
+      const field = document.createElement('div');
+      field.className = 'field';
+      field.innerHTML = `
+        <label>${part.label}</label>
+        <span class="inputwrap">
+          ${part.prefix ? `<span class="prefix">${part.prefix}</span>` : ''}
+          <input type="text" inputmode="${part.type === 'text' ? 'text' : 'decimal'}"
+                 autocomplete="off" data-idx="${idx}" placeholder="${part.placeholder || '?'}">
+          ${part.unit ? `<span class="unit">${part.unit}</span>` : ''}
+        </span>
+        <span class="tag"></span>`;
+      wrap.appendChild(field);
+    });
+  }
+
+  $('feedback').className = 'feedback';
+  $('feedback').textContent = '';
+  $('solution').className = 'solution';
+  $('solution').innerHTML = problem.solutionHTML;
+
+  typeset();
+  const first = wrap.querySelector('input');
+  if (first) first.focus();
+}
+
+function checkAnswers(){
+  const fb = $('feedback');
+
+  if (problem.mc){
+    const list = $('answers').querySelector('.choices');
+    if (mcPick == null){
+      fb.className = 'feedback show bad';
+      fb.textContent = 'Select an option first.';
+      return;
+    }
+    const correct = problem.mc.correct;
+    [...list.children].forEach((ch, i) => {
+      ch.classList.remove('sel','ok','no');
+      if (i === correct) ch.classList.add('ok');
+      else if (i === mcPick) ch.classList.add('no');
+    });
+    fb.className = 'feedback show';
+    if (mcPick === correct){
+      fb.classList.add('good'); fb.textContent = '\u2713 Correct.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite — the highlighted option is correct. See the steps below.';
+    }
+    return;
+  }
+
+  const inputs = [...$('answers').querySelectorAll('input')];
+  let allCorrect = true, anyBlank = false;
+
+  inputs.forEach(inp => {
+    const idx = +inp.dataset.idx;
+    const part = problem.parts[idx];
+    const field = inp.closest('.field');
+    const tag = field.querySelector('.tag');
+    field.classList.remove('ok', 'no');
+
+    if (part.type === 'text'){
+      const raw = inp.value.trim();
+      if (raw === ''){ anyBlank = true; allCorrect = false; if(tag) tag.textContent=''; return; }
+      const got = normTxt(raw);
+      const ok = part.accept.map(normTxt).includes(got);
+      if (ok){ field.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { field.classList.add('no'); if(tag) tag.textContent='try again'; allCorrect = false; }
+    } else {
+      const val = parseNum(inp.value);
+      if (val === null){ anyBlank = true; allCorrect = false; if(tag) tag.textContent=''; return; }
+      if (Math.abs(val - part.answer) <= (part.tol ?? 0.01)){ field.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { field.classList.add('no'); if(tag) tag.textContent='try again'; allCorrect = false; }
+    }
+  });
+
+  fb.className = 'feedback show';
+  if (anyBlank){
+    fb.classList.add('bad');
+    fb.textContent = 'Enter an answer in each blank.';
+  } else if (allCorrect){
+    fb.classList.add('good');
+    fb.textContent = inputs.length > 1 ? '\u2713 All correct — nice work.' : '\u2713 Correct.';
+    solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+  } else {
+    fb.classList.add('bad');
+    fb.textContent = 'Not quite — fix the highlighted blank and try again, or peek at the steps.';
+  }
+}
+
+function showSteps(){ $('solution').classList.add('show'); typeset(); }
+
+$('check').addEventListener('click', checkAnswers);
+$('next').addEventListener('click', newProblem);
+$('steps').addEventListener('click', showSteps);
+$('answers').addEventListener('keydown', (e) => { if (e.key === 'Enter') checkAnswers(); });
+
+/* =========================================================================
+   QUESTIONS — each entry is one problem type. Edit numbers inside gen().
+   ========================================================================= */
+/* Shared preference-assumption scenario pool (Lecture 4, Q1). Each scenario
+   maps to exactly one of the four axioms and carries a short explanation. */
+const ASSUMPTIONS = ['Completeness', 'Transitivity', 'Monotonicity', 'Convexity'];
+const PREF_SCENARIOS = [
+  { a:'Monotonicity', t:`Your sister would prefer to have twice as many shoes and dresses than she currently has, but that is unlikely with her income.`,
+    why:`Wanting <em>more</em> of every good is the definition of monotonicity ("more is better").` },
+  { a:'Completeness', t:`Your niece Hilary says she can't compare her two favorite shows, Dora and Sesame Street, because they're so different — even though they're on at the same time and she must choose.`,
+    why:`Completeness says any two bundles can be ranked. Refusing to compare two options <em>violates</em> it.` },
+  { a:'Convexity', t:`Terese prefers to buy either just gold or just silver jewelry, rather than a mix, so it's easier to coordinate her outfits.`,
+    why:`Convexity says averages (mixes) are at least as good as extremes. Preferring the extremes <em>violates</em> it.` },
+  { a:'Transitivity', t:`Akshay prefers hamburgers to hot dogs and hot dogs to chicken. Yet between hamburgers and chicken, he chooses chicken.`,
+    why:`Transitivity requires A\u227BB and B\u227BC to imply A\u227BC. Choosing chicken over hamburgers <em>violates</em> it.` },
+  { a:'Monotonicity', t:`Between two baskets of groceries, Maria always prefers the one that has more of every single item.`,
+    why:`Preferring the bundle with more of every good is exactly monotonicity.` },
+  { a:'Transitivity', t:`Devi prefers tea to coffee and coffee to juice, so she concludes she must prefer tea to juice.`,
+    why:`Chaining preferences A\u227BB, B\u227BC into A\u227BC is precisely transitivity.` },
+  { a:'Completeness', t:`Shown any two possible lunch bundles, Omar can always say which one he likes at least as much as the other.`,
+    why:`Being able to rank <em>every</em> pair of bundles is completeness.` },
+  { a:'Convexity', t:`Priya likes a balanced plate: she prefers a mix of rice and beans to a plate of only rice or only beans.`,
+    why:`Preferring a mix (an average) to the extremes is the hallmark of convex preferences.` }
+];
+
+const QUESTIONS = [
+
+  /* ----- 1. Identify the preference assumption (covers Canvas Q1-Q4) ----
+     Draws one scenario from the pool, shuffles the four axioms. */
+  {
+    key: 'assumptions',
+    name: 'Preference assumptions',
+    eyebrow: 'Which axiom?',
+    gen(){
+      const sc = pick(PREF_SCENARIOS);
+      const opts = shuffle(ASSUMPTIONS);
+      const correct = opts.indexOf(sc.a);
+
+      const promptHTML = `
+        <p>${sc.t}</p>
+        <p>Which assumption about preferences does this scenario reference or violate?</p>`;
+
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Answer: <strong>${sc.a}</strong>. ${sc.why}</p>
+        <p class="hint">The four standard axioms: <em>Completeness</em> (any two bundles can be ranked),
+           <em>Transitivity</em> (rankings chain consistently), <em>Monotonicity</em> (more is better),
+           <em>Convexity</em> (mixes are at least as good as extremes).</p>`;
+
+      return { promptHTML, mc: { options: opts, correct }, solutionHTML };
+    }
+  },
+
+  /* ----- 2. Most-preferred bundle, U = xy (Canvas Q5) -------------------
+     Four bundles; the most preferred maximizes the product x*y. */
+  {
+    key: 'bestbundle',
+    name: 'Most preferred bundle',
+    eyebrow: 'Utility \\(U=xy\\)',
+    gen(){
+      // EDIT NUMBERS HERE — build 4 bundles with a unique maximum product.
+      let bundles;
+      while (true){
+        bundles = [];
+        const seen = new Set();
+        while (bundles.length < 4){
+          const x = randint(1, 8), y = randint(1, 20);
+          const key = x + ',' + y;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          bundles.push({ x, y, u: x * y });
+        }
+        const us = bundles.map(b => b.u).sort((a, b) => b - a);
+        if (us[0] !== us[1]) break;   // unique maximum
+      }
+      const correct = bundles.reduce((bi, b, i, arr) => b.u > arr[bi].u ? i : bi, 0);
+      const options = bundles.map(b => `\\((${b.x},\\,${b.y})\\)`);
+
+      const promptHTML = `
+        <p>Consider the utility function \\( U(x,y)=xy \\). Which of the following bundles
+           is <strong>most preferred</strong>?</p>`;
+
+      const rows = bundles.map(b =>
+        `\\((${b.x},${b.y})\\): \\(U=${b.x}\\times ${b.y}=${b.u}\\)`).join('; &nbsp; ');
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Evaluate \\(U=xy\\) for each bundle: ${rows}.</p>
+        <p>The largest utility is \\(${bundles[correct].u}\\), so the most preferred bundle is
+           \\(\\mathbf{(${bundles[correct].x},${bundles[correct].y})}\\).</p>`;
+
+      return { promptHTML, mc: { options, correct }, solutionHTML };
+    }
+  },
+
+  /* ----- 3. Compare two bundles (NEW) ----------------------------------
+     Random utility form; decide A vs B vs indifferent. */
+  {
+    key: 'compare',
+    name: 'Compare two bundles',
+    eyebrow: 'Ranking bundles',
+    gen(){
+      // EDIT NUMBERS HERE
+      const forms = [
+        { tex: 'U(x,y)=xy',           f: (x,y) => x * y },
+        { tex: 'U(x,y)=x+y',          f: (x,y) => x + y },
+        { tex: 'U(x,y)=\\min\\{x,y\\}', f: (x,y) => Math.min(x, y) },
+        { tex: 'U(x,y)=2x+y',         f: (x,y) => 2 * x + y }
+      ];
+      const form = pick(forms);
+      const A = { x: randint(1, 9), y: randint(1, 9) };
+      const B = { x: randint(1, 9), y: randint(1, 9) };
+      const uA = form.f(A.x, A.y), uB = form.f(B.x, B.y);
+
+      const options = ['Bundle A is preferred', 'Bundle B is preferred', 'Indifferent between A and B'];
+      const correct = uA > uB ? 0 : (uB > uA ? 1 : 2);
+
+      const promptHTML = `
+        <p>A consumer has utility \\( ${form.tex} \\). Compare the two bundles
+           \\( A=(${A.x},${A.y}) \\) and \\( B=(${B.x},${B.y}) \\).</p>`;
+
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>\\( U(A)=${uA} \\) and \\( U(B)=${uB} \\).</p>
+        <p>${correct === 2 ? 'The utilities are equal, so the consumer is <strong>indifferent</strong>.'
+             : 'Higher utility is preferred, so <strong>bundle ' + (correct === 0 ? 'A' : 'B') + '</strong> is preferred.'}</p>`;
+
+      return { promptHTML, mc: { options, correct }, solutionHTML };
+    }
+  },
+
+  /* ----- 4. Marginal utility (Canvas Q6) -------------------------------
+     Symbolic or numeric MU, depending on the utility drawn. Answers are
+     graded as text (so "y", "2y", "3" etc. all work). */
+  {
+    key: 'mu',
+    name: 'Marginal utility',
+    eyebrow: '\\(MU_x,\\; MU_y\\)',
+    gen(){
+      // EDIT NUMBERS HERE — utilities whose MUs are clean monomials/constants.
+      const forms = [
+        { tex: 'U(x,y)=xy',      mux: 'y',  muy: 'x',  ax: ['y'],       ay: ['x'],       type: 'sym' },
+        { tex: 'U(x,y)=2xy',     mux: '2y', muy: '2x', ax: ['2y','2*y'], ay: ['2x','2*x'], type: 'sym' },
+        { tex: 'U(x,y)=3xy',     mux: '3y', muy: '3x', ax: ['3y','3*y'], ay: ['3x','3*x'], type: 'sym' }
+      ];
+      const useSym = Math.random() < 0.6;
+
+      let promptHTML, solutionHTML, parts;
+      if (useSym){
+        const F = pick(forms);
+        promptHTML = `
+          <p>Let the utility function be \\( ${F.tex} \\).</p>
+          <p>Find the marginal utilities \\( MU_x=\\dfrac{\\partial U}{\\partial x} \\) and
+             \\( MU_y=\\dfrac{\\partial U}{\\partial y} \\). (Enter an expression, e.g. <code>3x</code>, <code>2y</code>, or a number.)</p>`;
+        solutionHTML = `
+          <h4>Worked solution</h4>
+          <p>Treat \\(y\\) as a constant when differentiating in \\(x\\):
+             \\( MU_x = \\mathbf{${F.mux}} \\).</p>
+          <p>Treat \\(x\\) as a constant when differentiating in \\(y\\):
+             \\( MU_y = \\mathbf{${F.muy}} \\).</p>`;
+        parts = [
+          { type: 'text', label: '\\(MU_x=\\)', accept: F.ax },
+          { type: 'text', label: '\\(MU_y=\\)', accept: F.ay }
+        ];
+      } else {
+        const c = randint(2, 6), d = randint(2, 6);
+        promptHTML = `
+          <p>Let the utility function be \\( U(x,y)=${c}x+${d}y \\).</p>
+          <p>Find the marginal utilities \\( MU_x \\) and \\( MU_y \\).</p>`;
+        solutionHTML = `
+          <h4>Worked solution</h4>
+          <p>For a linear utility, each marginal utility is just the coefficient:
+             \\( MU_x=\\mathbf{${c}} \\) and \\( MU_y=\\mathbf{${d}} \\).</p>`;
+        parts = [
+          { type: 'text', label: '\\(MU_x=\\)', accept: [String(c)] },
+          { type: 'text', label: '\\(MU_y=\\)', accept: [String(d)] }
+        ];
+      }
+      return { promptHTML, parts, solutionHTML };
+    }
+  },
+
+  /* ----- 5. Marginal rate of substitution at a point (NEW) -------------
+     For U=xy, MRS = MU_x/MU_y = y/x.  Evaluate at a point chosen so the
+     ratio is clean. */
+  {
+    key: 'mrs',
+    name: 'MRS at a point',
+    eyebrow: 'Marginal rate of substitution',
+    gen(){
+      // EDIT NUMBERS HERE — keep y0/x0 a tidy number.
+      const x0 = pick([2, 3, 4, 5]);
+      const mult = pick([1, 2, 3, 4]);
+      const y0 = x0 * mult;                 // so MRS = y0/x0 = mult (integer)
+      const mrs = y0 / x0;
+
+      const promptHTML = `
+        <p>A consumer has utility \\( U(x,y)=xy \\). Compute the marginal rate of substitution
+           \\( MRS = \\dfrac{MU_x}{MU_y} \\) at the bundle \\( (x,y)=(${x0},${y0}) \\).</p>
+        <p class="hint">Hint: for \\(U=xy\\), \\(MU_x=y\\) and \\(MU_y=x\\), so \\(MRS=\\dfrac{y}{x}\\).</p>`;
+
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>\\( MU_x=y \\) and \\( MU_y=x \\), so \\( MRS=\\dfrac{y}{x} \\).</p>
+        <p>At \\((${x0},${y0})\\): \\( MRS=\\dfrac{${y0}}{${x0}}=\\mathbf{${mrs}} \\).</p>`;
+
+      return { promptHTML, parts: [{ label: 'MRS at \\(('+x0+','+y0+')\\)', answer: mrs, tol: 0.01 }], solutionHTML };
+    }
+  },
+
+  /* ----- 6. Partial derivatives at a point, Cobb-Douglas (Canvas Q7) ----
+     Original: f = 4 K^{3/4} L^{1/4} at (10000, 625) -> f_K = 1.5, f_L = 8.
+     Exponents are (3/4, 1/4) (possibly swapped); points are 4th powers, so
+     both partials come out clean.  With A=4, root_hi = q*r, root_lo = q:
+        partial wrt the 3/4-variable = 3/r ,  partial wrt the 1/4-variable = r^3. */
+  {
+    key: 'partial',
+    name: 'Partial derivatives',
+    eyebrow: 'Cobb\u2013Douglas at a point',
+    gen(){
+      // EDIT NUMBERS HERE
+      const A = 4;
+      const q = pick([2, 3, 5]);            // base root
+      const r = pick([1, 2, 3]);            // ratio of the two roots
+      const swap = Math.random() < 0.5;     // which variable carries 3/4
+
+      const rootHi = q * r;                 // root of the 3/4-variable's value
+      const rootLo = q;                     // root of the 1/4-variable's value
+      const Vhi = rootHi ** 4;              // that variable's value (a 4th power)
+      const Vlo = rootLo ** 4;
+
+      const dHi = round(3 / r, 4);          // partial wrt the 3/4-variable
+      const dLo = round(r ** 3, 4);         // partial wrt the 1/4-variable
+
+      // Assign to K and L
+      let K, L, aK, aL, fK, fL;
+      if (!swap){ K = Vhi; L = Vlo; aK = '3/4'; aL = '1/4'; fK = dHi; fL = dLo; }
+      else      { K = Vlo; L = Vhi; aK = '1/4'; aL = '3/4'; fK = dLo; fL = dHi; }
+
+      const promptHTML = `
+        <p>Consider \\( f(K,L)=${A}\\,K^{${aK}}L^{${aL}} \\).</p>
+        <p>Compute the partial derivatives and evaluate them at
+           \\( (K,L)=(${K},\\,${L}) \\):</p>`;
+
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>\\( \\dfrac{\\partial f}{\\partial K}=${A}\\cdot ${aK}\\,K^{${aK}-1}L^{${aL}} \\)
+           and \\( \\dfrac{\\partial f}{\\partial L}=${A}\\cdot ${aL}\\,K^{${aK}}L^{${aL}-1} \\).</p>
+        <p>Using \\(${K}=${!swap?rootHi:rootLo}^4\\) and \\(${L}=${!swap?rootLo:rootHi}^4\\),
+           evaluating gives \\( \\dfrac{\\partial f}{\\partial K}(${K},${L})=\\mathbf{${fK}} \\)
+           and \\( \\dfrac{\\partial f}{\\partial L}(${K},${L})=\\mathbf{${fL}} \\).</p>`;
+
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(\\partial f/\\partial K\\) at the point', answer: fK, tol: 0.01 },
+          { label: '\\(\\partial f/\\partial L\\) at the point', answer: fL, tol: 0.01 }
+        ],
+        solutionHTML
+      };
+    }
+  }
+
+];
+
+/* ---- Startup ----
+   Primary path: MathJax's pageReady hook calls boot() once math is ready.
+   Fallback: if MathJax can't load (offline), still show questions after 3s. */
+let booted = false;
+function boot(){ if (booted) return; booted = true; buildTopics(); newProblem(); }
+setTimeout(() => { if (!booted) boot(); }, 3000);
+</script>
+</body>
+</html>
