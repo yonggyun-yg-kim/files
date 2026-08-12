@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  ECO 3101 — Interactive practice page.  Self-contained: one HTML file.
+  No installation, no server. Double-click to open; drop into a GitHub repo
+  to publish for students.
+
+  HOW IT'S ORGANIZED (for editing later):
+  - All the math/questions live in the QUESTIONS array near the bottom of the
+    <script>. Each entry is one "problem type." To change the random ranges,
+    edit the numbers inside its gen() function — look for "EDIT NUMBERS HERE".
+  - To add a new problem type, copy one block and adjust it.
+  - The look (colors/fonts) is in the <style> block; you can ignore it.
+  ============================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lecture 9 Exercises — Intermediate Microeconomics</title>
+
+<!-- Fonts: IBM Plex family (academic/technical feel) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- MathJax: renders the LaTeX math. Loads from a CDN; needs internet.
+     We boot the app from MathJax's pageReady hook (see config below). -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(', '\\)'], ['$', '$']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+    svg: { fontCache: 'global' },
+    startup: {
+      typeset: false,
+      pageReady: () => MathJax.startup.defaultPageReady().then(() => boot())
+    }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+
+<style>
+  :root{
+    --paper:#eef1f5;        /* page background (cool soft white) */
+    --grid:#e0e5ec;         /* faint graph-paper lines */
+    --card:#ffffff;
+    --ink:#17263a;          /* primary text: deep slate-navy */
+    --muted:#5d6b7c;        /* secondary text */
+    --line:#dde3ea;         /* hairlines / borders */
+    --accent:#2b5c8a;       /* scholarly blue */
+    --accent-d:#1f456a;
+    --success:#2f7a52;
+    --success-bg:#eaf4ee;
+    --error:#b0432e;
+    --error-bg:#f7ece9;
+    --shadow:0 1px 2px rgba(23,38,58,.05), 0 12px 30px rgba(23,38,58,.07);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    color:var(--ink);
+    background-color:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:26px 26px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{ max-width:740px; margin:0 auto; padding:40px 20px 80px; }
+
+  /* ---- Header ---- */
+  .kicker{
+    font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.13em;
+    color:var(--accent); margin:0 0 10px;
+  }
+  header{ display:flex; align-items:center; gap:14px; margin-bottom:6px; }
+  .mark{ flex:0 0 auto; }
+  .mark svg{ display:block; }
+  h1{
+    font-family:'IBM Plex Serif', Georgia, serif;
+    font-weight:600; font-size:1.7rem; margin:0; letter-spacing:.01em;
+  }
+  .sub{ color:var(--muted); margin:.4em 0 26px; font-size:1rem; }
+
+  /* ---- Topic selector ---- */
+  .topics{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+  .topic{
+    font:500 .85rem/1 'IBM Plex Sans', sans-serif;
+    color:var(--muted); background:var(--card);
+    border:1px solid var(--line); border-radius:999px;
+    padding:8px 15px; cursor:pointer; transition:all .15s ease;
+  }
+  .topic:hover{ border-color:var(--accent); color:var(--accent); }
+  .topic.active{
+    background:var(--accent); border-color:var(--accent);
+    color:#fff; box-shadow:0 4px 12px rgba(43,92,138,.22);
+  }
+
+  /* ---- Card ---- */
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:26px 26px 22px; box-shadow:var(--shadow);
+  }
+  .eyebrow{
+    font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.1em; color:var(--accent);
+    margin-bottom:12px; display:flex; align-items:center; gap:8px;
+  }
+  .prompt{ font-size:1.05rem; }
+  .prompt p{ margin:.5em 0; }
+  .prompt .hint{
+    color:var(--muted); font-size:.92rem;
+    border-left:3px solid var(--line); padding-left:12px; margin-top:14px;
+  }
+
+  /* ---- Answer fields ---- */
+  .answers{ margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+  .field{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .field label{ font-size:.95rem; color:var(--ink); min-width:0; }
+  .field .inputwrap{ display:inline-flex; align-items:center; gap:6px; }
+  .field .prefix{ color:var(--muted); font-family:'IBM Plex Mono', monospace; }
+  .field input{
+    width:130px; font:500 1rem 'IBM Plex Mono', monospace;
+    color:var(--ink); background:var(--paper);
+    border:1.5px solid var(--line); border-radius:9px; padding:9px 11px;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .field input:focus{ outline:none; border-color:var(--accent); background:#fff; }
+  .field .unit{ color:var(--muted); font-size:.9rem; }
+  .field.ok input{ border-color:var(--success); background:var(--success-bg); }
+  .field.no input{ border-color:var(--error); background:var(--error-bg); }
+  .field .tag{
+    font:600 .68rem/1 'IBM Plex Mono', monospace; text-transform:uppercase;
+    letter-spacing:.06em; padding:3px 7px; border-radius:6px; opacity:0;
+  }
+  .field.ok .tag{ opacity:1; color:var(--success); background:var(--success-bg); }
+  .field.no .tag{ opacity:1; color:var(--error); background:var(--error-bg); }
+
+  /* ---- Multiple choice ---- */
+  .choices{ margin-top:20px; display:flex; flex-direction:column; gap:10px; }
+  .choice{
+    text-align:left; font:500 1rem 'IBM Plex Sans', sans-serif; color:var(--ink);
+    background:var(--paper); border:1.5px solid var(--line); border-radius:11px;
+    padding:13px 16px; cursor:pointer; transition:all .13s ease;
+    display:flex; align-items:center; gap:12px;
+  }
+  .choice:hover{ border-color:var(--accent); }
+  .choice .bullet{
+    flex:0 0 auto; width:22px; height:22px; border-radius:50%;
+    border:1.5px solid var(--line); display:inline-flex; align-items:center;
+    justify-content:center; font:600 .8rem 'IBM Plex Mono', monospace; color:var(--muted);
+  }
+  .choice.sel{ border-color:var(--accent); background:#fff; box-shadow:0 3px 10px rgba(43,92,138,.14); }
+  .choice.sel .bullet{ border-color:var(--accent); color:var(--accent); }
+  .choice.ok{ border-color:var(--success); background:var(--success-bg); }
+  .choice.ok .bullet{ border-color:var(--success); color:var(--success); background:#fff; }
+  .choice.no{ border-color:var(--error); background:var(--error-bg); }
+  .choice.no .bullet{ border-color:var(--error); color:var(--error); background:#fff; }
+
+  /* ---- Multi-select (checkbox) ---- */
+  .choice .box{
+    flex:0 0 auto; width:21px; height:21px; border-radius:6px;
+    border:1.5px solid var(--line); display:inline-flex; align-items:center;
+    justify-content:center; background:#fff;
+  }
+  .choice .box svg{ width:13px; height:13px; opacity:0; }
+  .choice.sel .box{ border-color:var(--accent); background:var(--accent); }
+  .choice.sel .box svg{ opacity:1; }
+  .choice.ok .box{ border-color:var(--success); background:var(--success); }
+  .choice.ok .box svg{ opacity:1; }
+  .choice.no .box{ border-color:var(--error); background:var(--error); }
+  .choice.no .box svg{ opacity:1; }
+
+  /* ---- Matching ---- */
+  .matchrows{ margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+  .matchrow{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .matchrow .ml{ flex:1 1 250px; font-size:.98rem; }
+  .matchrow select{
+    font:500 .95rem 'IBM Plex Sans',sans-serif; color:var(--ink); background:var(--paper);
+    border:1.5px solid var(--line); border-radius:9px; padding:9px 11px; min-width:190px; cursor:pointer;
+  }
+  .matchrow select:focus{ outline:none; border-color:var(--accent); background:#fff; }
+  .matchrow.ok select{ border-color:var(--success); background:var(--success-bg); }
+  .matchrow.no select{ border-color:var(--error); background:var(--error-bg); }
+  .matchrow .tag{ font:600 .68rem/1 'IBM Plex Mono',monospace; text-transform:uppercase;
+    letter-spacing:.06em; padding:3px 7px; border-radius:6px; opacity:0; }
+  .matchrow.ok .tag{ opacity:1; color:var(--success); background:var(--success-bg); }
+  .matchrow.no .tag{ opacity:1; color:var(--error); background:var(--error-bg); }
+
+  /* ---- Diagram ---- */
+  .diagram{ margin:18px 0 6px; text-align:center; }
+  .diagram svg{ max-width:100%; height:auto; background:#fff;
+    border:1px solid var(--line); border-radius:10px; }
+  .diagram .cap{ color:var(--muted); font-size:.85rem; margin-top:6px; }
+
+  /* ---- Data table (cost / schedule tables in prompts) ---- */
+  .costtable{
+    border-collapse:collapse; margin:16px auto; background:#fff;
+    font:500 .95rem 'IBM Plex Mono',monospace; min-width:280px;
+  }
+  .costtable th, .costtable td{
+    border:1px solid var(--line); padding:7px 16px; text-align:right;
+  }
+  .costtable th{
+    background:var(--paper); font:600 .8rem 'IBM Plex Sans',sans-serif;
+    text-transform:uppercase; letter-spacing:.05em; color:var(--muted);
+  }
+
+  /* ---- Actions ---- */
+  .actions{ display:flex; align-items:center; gap:10px; margin-top:22px; flex-wrap:wrap; }
+  .btn{
+    font:600 .92rem 'IBM Plex Sans', sans-serif; cursor:pointer;
+    border-radius:10px; padding:11px 18px; border:1.5px solid transparent;
+    transition:all .15s ease;
+  }
+  .btn-primary{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .btn-primary:hover{ background:var(--accent-d); border-color:var(--accent-d); }
+  .btn-ghost{ background:#fff; color:var(--accent); border-color:var(--line); }
+  .btn-ghost:hover{ border-color:var(--accent); }
+  .btn-text{
+    background:none; border:none; cursor:pointer; color:var(--muted);
+    font:500 .9rem 'IBM Plex Sans', sans-serif; text-decoration:underline;
+    text-underline-offset:3px; padding:6px 4px;
+  }
+  .btn-text:hover{ color:var(--accent); }
+  .spacer{ flex:1 1 auto; }
+  .score{ font:500 .85rem 'IBM Plex Mono', monospace; color:var(--muted); }
+
+  /* ---- Feedback + solution ---- */
+  .feedback{ margin-top:16px; font-weight:500; font-size:.96rem; display:none; }
+  .feedback.show{ display:block; }
+  .feedback.good{ color:var(--success); }
+  .feedback.bad{ color:var(--error); }
+  .solution{
+    display:none; margin-top:14px; padding:16px 18px;
+    background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    font-size:.95rem;
+  }
+  .solution.show{ display:block; }
+  .solution h4{
+    margin:0 0 8px; font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.08em; color:var(--muted);
+  }
+  .solution p{ margin:.4em 0; }
+
+  footer{ margin-top:30px; color:var(--muted); font-size:.82rem; text-align:center; line-height:1.6; }
+  footer a{ color:var(--accent); text-decoration:none; }
+  footer a:hover{ text-decoration:underline; }
+
+  @media (max-width:520px){
+    .wrap{ padding:26px 14px 60px; }
+    .actions{ gap:8px; }
+    .spacer{ flex-basis:100%; height:0; }
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .card{ animation:rise .25s ease both; }
+    @keyframes rise{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">ECO 3101 · Production &amp; Costs</p>
+  <header>
+    <span class="mark" aria-hidden="true">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+        <path d="M5 29V5M5 29h24" stroke="#2b5c8a" stroke-width="2" stroke-linecap="round"/>
+        <path d="M6 24C12 24 13 9 28 8" stroke="#17263a" stroke-width="2" stroke-linecap="round" fill="none"/>
+      </svg>
+    </span>
+    <h1>Lecture 9 Exercises</h1>
+  </header>
+  <p class="sub">Intermediate Microeconomic Theory. Fresh numbers every time — work it out, type your answer, check yourself.</p>
+
+  <div class="topics" id="topics" role="group" aria-label="Choose a problem type"></div>
+
+  <div class="card" id="card">
+    <div class="eyebrow"><span id="eyebrow">—</span></div>
+    <div class="prompt" id="prompt"></div>
+
+    <div class="answers" id="answers"></div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="check">Check answer</button>
+      <button class="btn btn-ghost" id="next">New question</button>
+      <button class="btn-text" id="steps">Show steps</button>
+      <span class="spacer"></span>
+      <span class="score" id="score">Solved 0</span>
+    </div>
+
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <div class="solution" id="solution"></div>
+  </div>
+
+  <footer>
+    Ungraded self-practice — reload for a fresh set.<br>
+    Built for <strong>ECO 3101</strong> at Florida State University.<br>
+    Found an error, or have a correction or suggestion? Email
+    <a href="mailto:ykim22@fsu.edu">ykim22@fsu.edu</a>.
+  </footer>
+</div>
+
+<script>
+/* ============================ small helpers ============================ */
+const $ = (id) => document.getElementById(id);
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const randint = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+function shuffle(a){ a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const round = (x, d=6) => { const f = 10**d; return Math.round((x + Number.EPSILON) * f) / f; };
+const comma = (x) => x.toLocaleString('en-US');
+function parseNum(s){
+  if (s == null) return null;
+  s = String(s).trim().replace(/,/g,'').replace(/\s+/g,'');
+  if (s === '') return null;
+  // allow simple fractions like -3/4
+  const frac = s.match(/^(-?\d*\.?\d+)\/(-?\d*\.?\d+)$/);
+  if (frac){ const d = parseFloat(frac[2]); if (d === 0) return null; return parseFloat(frac[1]) / d; }
+  const v = Number(s);
+  return Number.isFinite(v) ? v : null;
+}
+function normTxt(s){
+  return String(s == null ? '' : s).toLowerCase()
+    .replace(/\s+/g,'').replace(/[*·×]/g,'').replace(/\\cdot/g,'')
+    .replace(/\^/g,'').replace(/\{|\}/g,'');
+}
+function typeset(){ if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); }
+
+/* ============================ state / engine ============================ */
+let current = 0;      // index into QUESTIONS
+let problem = null;   // the generated instance
+let solvedCount = 0;
+let mcPick = null;    // selected choice index for MC questions
+let multiPick = new Set(); // selected indices for multi-select questions
+
+function buildTopics(){
+  const box = $('topics');
+  box.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const b = document.createElement('button');
+    b.className = 'topic' + (i === current ? ' active' : '');
+    b.textContent = q.name;
+    b.addEventListener('click', () => { current = i; syncTopics(); newProblem(); });
+    box.appendChild(b);
+  });
+}
+function syncTopics(){
+  [...$('topics').children].forEach((b, i) => b.classList.toggle('active', i === current));
+}
+
+function newProblem(){
+  problem = QUESTIONS[current].gen();
+  mcPick = null;
+  multiPick = new Set();
+  $('eyebrow').textContent = QUESTIONS[current].eyebrow || QUESTIONS[current].name;
+  $('prompt').innerHTML = problem.promptHTML;
+
+  const wrap = $('answers');
+  wrap.innerHTML = '';
+
+  if (problem.mc){
+    // multiple-choice rendering
+    const list = document.createElement('div');
+    list.className = 'choices';
+    problem.mc.options.forEach((opt, i) => {
+      const c = document.createElement('button');
+      c.className = 'choice';
+      c.dataset.idx = i;
+      c.innerHTML = `<span class="bullet">${String.fromCharCode(65+i)}</span><span>${opt}</span>`;
+      c.addEventListener('click', () => {
+        mcPick = i;
+        [...list.children].forEach(ch => ch.classList.remove('sel','ok','no'));
+        c.classList.add('sel');
+      });
+      list.appendChild(c);
+    });
+    wrap.appendChild(list);
+  } else if (problem.multi){
+    // multiple-answers (checkbox) rendering
+    const list = document.createElement('div');
+    list.className = 'choices';
+    problem.multi.options.forEach((opt, i) => {
+      const c = document.createElement('button');
+      c.className = 'choice';
+      c.dataset.idx = i;
+      c.innerHTML = `<span class="box"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.2 3.2L13 4.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>${opt}</span>`;
+      c.addEventListener('click', () => {
+        if (multiPick.has(i)) multiPick.delete(i); else multiPick.add(i);
+        c.classList.toggle('sel', multiPick.has(i));
+        c.classList.remove('ok','no');
+      });
+      list.appendChild(c);
+    });
+    wrap.appendChild(list);
+  } else if (problem.match){
+    // matching rendering (each row: statement + a <select> of labels)
+    const box = document.createElement('div');
+    box.className = 'matchrows';
+    const optionsHTML = ['<option value="">\u2014 choose \u2014</option>']
+      .concat(problem.match.options.map((o,j) => `<option value="${j}">${o}</option>`)).join('');
+    problem.match.rows.forEach((row, i) => {
+      const r = document.createElement('div');
+      r.className = 'matchrow';
+      r.dataset.idx = i;
+      r.innerHTML = `<span class="ml">${row.left}</span><select data-idx="${i}">${optionsHTML}</select><span class="tag"></span>`;
+      box.appendChild(r);
+    });
+    wrap.appendChild(box);
+  } else {
+    // input-field rendering (numeric or text parts)
+    problem.parts.forEach((part, idx) => {
+      const field = document.createElement('div');
+      field.className = 'field';
+      field.innerHTML = `
+        <label>${part.label}</label>
+        <span class="inputwrap">
+          ${part.prefix ? `<span class="prefix">${part.prefix}</span>` : ''}
+          <input type="text" inputmode="${part.type === 'text' ? 'text' : 'decimal'}"
+                 autocomplete="off" data-idx="${idx}" placeholder="${part.placeholder || '?'}">
+          ${part.unit ? `<span class="unit">${part.unit}</span>` : ''}
+        </span>
+        <span class="tag"></span>`;
+      wrap.appendChild(field);
+    });
+  }
+
+  $('feedback').className = 'feedback';
+  $('feedback').textContent = '';
+  $('solution').className = 'solution';
+  $('solution').innerHTML = problem.solutionHTML;
+
+  typeset();
+  const first = wrap.querySelector('input');
+  if (first) first.focus();
+}
+
+function checkAnswers(){
+  const fb = $('feedback');
+
+  if (problem.mc){
+    const list = $('answers').querySelector('.choices');
+    if (mcPick == null){
+      fb.className = 'feedback show bad';
+      fb.textContent = 'Select an option first.';
+      return;
+    }
+    const correct = problem.mc.correct;
+    [...list.children].forEach((ch, i) => {
+      ch.classList.remove('sel','ok','no');
+      if (i === correct) ch.classList.add('ok');
+      else if (i === mcPick) ch.classList.add('no');
+    });
+    fb.className = 'feedback show';
+    if (mcPick === correct){
+      fb.classList.add('good'); fb.textContent = '\u2713 Correct.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite — the highlighted option is correct. See the steps below.';
+    }
+    return;
+  }
+
+  if (problem.multi){
+    const list = $('answers').querySelector('.choices');
+    if (multiPick.size === 0){
+      fb.className = 'feedback show bad';
+      fb.textContent = 'Select at least one option (or as many as apply).';
+      return;
+    }
+    const correct = new Set(problem.multi.correct);
+    const ok = correct.size === multiPick.size && [...correct].every(i => multiPick.has(i));
+    [...list.children].forEach((ch, i) => {
+      ch.classList.remove('sel','ok','no');
+      if (correct.has(i)) ch.classList.add('ok');
+      else if (multiPick.has(i)) ch.classList.add('no');
+    });
+    fb.className = 'feedback show';
+    if (ok){
+      fb.classList.add('good'); fb.textContent = '\u2713 Correct.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite \u2014 the correct set is highlighted green. See the steps below.';
+    }
+    return;
+  }
+
+  if (problem.match){
+    const rows = [...$('answers').querySelectorAll('.matchrow')];
+    let all = true, blank = false;
+    rows.forEach(r => {
+      const i = +r.dataset.idx;
+      const sel = r.querySelector('select');
+      const tag = r.querySelector('.tag');
+      r.classList.remove('ok','no');
+      if (sel.value === ''){ blank = true; all = false; if(tag) tag.textContent=''; return; }
+      if (+sel.value === problem.match.rows[i].correct){ r.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { r.classList.add('no'); if(tag) tag.textContent='try again'; all = false; }
+    });
+    fb.className = 'feedback show';
+    if (blank){ fb.classList.add('bad'); fb.textContent = 'Match every row before checking.'; }
+    else if (all){
+      fb.classList.add('good'); fb.textContent = '\u2713 All matched correctly.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite \u2014 the green rows are right; fix the others or peek at the steps.';
+    }
+    return;
+  }
+
+  const inputs = [...$('answers').querySelectorAll('input')];
+  let allCorrect = true, anyBlank = false;
+
+  inputs.forEach(inp => {
+    const idx = +inp.dataset.idx;
+    const part = problem.parts[idx];
+    const field = inp.closest('.field');
+    const tag = field.querySelector('.tag');
+    field.classList.remove('ok', 'no');
+
+    if (part.type === 'text'){
+      const raw = inp.value.trim();
+      if (raw === ''){ anyBlank = true; allCorrect = false; if(tag) tag.textContent=''; return; }
+      const got = normTxt(raw);
+      const ok = part.accept.map(normTxt).includes(got);
+      if (ok){ field.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { field.classList.add('no'); if(tag) tag.textContent='try again'; allCorrect = false; }
+    } else {
+      const val = parseNum(inp.value);
+      if (val === null){ anyBlank = true; allCorrect = false; if(tag) tag.textContent=''; return; }
+      if (Math.abs(val - part.answer) <= (part.tol ?? 0.01)){ field.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { field.classList.add('no'); if(tag) tag.textContent='try again'; allCorrect = false; }
+    }
+  });
+
+  fb.className = 'feedback show';
+  if (anyBlank){
+    fb.classList.add('bad');
+    fb.textContent = 'Enter an answer in each blank.';
+  } else if (allCorrect){
+    fb.classList.add('good');
+    fb.textContent = inputs.length > 1 ? '\u2713 All correct — nice work.' : '\u2713 Correct.';
+    solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+  } else {
+    fb.classList.add('bad');
+    fb.textContent = 'Not quite — fix the highlighted blank and try again, or peek at the steps.';
+  }
+}
+
+function showSteps(){ $('solution').classList.add('show'); typeset(); }
+
+$('check').addEventListener('click', checkAnswers);
+$('next').addEventListener('click', newProblem);
+$('steps').addEventListener('click', showSteps);
+$('answers').addEventListener('keydown', (e) => { if (e.key === 'Enter') checkAnswers(); });
+
+/* =========================================================================
+   QUESTIONS — each entry is one problem type. Edit numbers inside gen().
+   ========================================================================= */
+/* =========================================================================
+   Lecture 9 — Production & Short-Run Costs
+   Linear (perfect-substitute) production Q = aK + bL with capital fixed in
+   the short run, the FC / VC / TC / MC decomposition, and the marginal-average
+   relationship (MC vs AC). All draws back-solve to whole numbers.
+     L = (Q - a*Kbar)/b   →   VC = (w/b)Q - (w a Kbar)/b,  FC = r*Kbar
+     MC = w/b (constant here)
+   ========================================================================= */
+
+/* Draw a short-run cost setup with clean integers: w must be divisible by b. */
+function costSetup(){
+  // EDIT NUMBERS HERE
+  const a = pick([1,2,3,4]);
+  const b = pick([1,2,3,5]);
+  const m = pick([2,3,4,5,6,10]);        // MC = w/b
+  const w = b * m;                        // wage
+  const r = pick([2,3,4,5,6]);            // rental rate of capital
+  const Kbar = pick([2,3,4,5]);           // fixed capital
+  const FC = r * Kbar;
+  const vcConst = m * a * Kbar;           // VC = mQ - vcConst
+  const tcConst = vcConst - FC;           // TC = mQ - tcConst
+  return { a, b, w, r, Kbar, m, FC, vcConst, tcConst };
+}
+const cf9 = n => (n === 1 ? '' : String(n));
+/* signed constant for display: returns e.g. "- 30" or "+ 6" */
+function signed(n){ return n >= 0 ? `- ${n}` : `+ ${-n}`; }
+
+const QUESTIONS = [
+
+  /* ----- 1. Fixed cost in the short run (original) -------------------- */
+  {
+    key: 'fixedcost',
+    name: 'Fixed cost',
+    eyebrow: 'Short-run costs',
+    gen(){
+      const s = costSetup();
+      const promptHTML = `
+        <p>Output is given by \\( Q=${cf9(s.a)}K+${cf9(s.b)}L \\), where \\(K\\) is capital and \\(L\\) is labor.
+           The price of capital is \\(\\$${s.r}\\)/machine hour and the price of labor is
+           \\(\\$${s.w}\\)/worker hour. Capital is fixed at \\(${s.Kbar}\\) machines in the short run.</p>
+        <p>What is the fixed cost?</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Fixed cost is what the firm pays no matter how much it produces. In the short run only capital is
+           fixed, so \\( FC=r\\bar{K} \\).</p>
+        <p>\\( FC=${s.r}\\times${s.Kbar}=\\mathbf{${s.FC}} \\).</p>`;
+      return { promptHTML, parts: [{ label: '\\(FC=\\$\\)', answer: s.FC, tol: 0.01 }], solutionHTML };
+    }
+  },
+
+  /* ----- 2. VC, TC and MC (original three blanks) --------------------- */
+  {
+    key: 'costfuncs',
+    name: 'VC, TC and MC',
+    eyebrow: 'Cost functions',
+    gen(){
+      const s = costSetup();
+      const promptHTML = `
+        <p>With \\( Q=${cf9(s.a)}K+${cf9(s.b)}L \\), \\( r=\\$${s.r} \\), \\( w=\\$${s.w} \\), and capital fixed at
+           \\( \\bar{K}=${s.Kbar} \\), the cost functions take the form</p>
+        <p>\\( VC=${s.m}Q-\\square \\), &nbsp; \\( TC=${s.m}Q-\\square \\), &nbsp; \\( MC=\\square \\).</p>
+        <p>Fill in the three missing numbers:</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p><strong>Step 1 — labor needed for output \\(Q\\).</strong> With \\(K\\) fixed at \\(${s.Kbar}\\),
+           \\( Q=${cf9(s.a)}(${s.Kbar})+${cf9(s.b)}L=${s.a*s.Kbar}+${cf9(s.b)}L \\), so
+           \\[ L=\\frac{Q-${s.a*s.Kbar}}{${s.b}}. \\]</p>
+        <p><strong>Step 2 — variable cost</strong> is the wage bill:
+           \\[ VC=wL=${s.w}\\cdot\\frac{Q-${s.a*s.Kbar}}{${s.b}}
+              =${s.m}\\left(Q-${s.a*s.Kbar}\\right)=${s.m}Q-\\mathbf{${s.vcConst}}. \\]</p>
+        <p><strong>Step 3 — total cost</strong> adds the fixed cost \\( FC=r\\bar{K}=${s.r}\\times${s.Kbar}=${s.FC} \\):
+           \\[ TC=VC+FC=${s.m}Q-${s.vcConst}+${s.FC}=${s.m}Q-\\mathbf{${s.tcConst}}. \\]</p>
+        <p><strong>Step 4 — marginal cost</strong> is the derivative of \\(TC\\):
+           \\[ MC=\\frac{dTC}{dQ}=\\mathbf{${s.m}}. \\]
+           (Each extra unit of \\(Q\\) needs \\(1/${s.b}\\) more workers at \\(\\$${s.w}\\) each.)</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(VC=' + s.m + 'Q-\\)', answer: s.vcConst, tol: 0.01 },
+          { label: '\\(TC=' + s.m + 'Q-\\)', answer: s.tcConst, tol: 0.01 },
+          { label: '\\(MC=\\)', answer: s.m, tol: 0.01 }
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 3. Marginal vs average (original true/false) ----------------- */
+  {
+    key: 'margavg',
+    name: 'Marginal vs average',
+    eyebrow: 'The marginal-average rule',
+    gen(){
+      // randomize both the direction and whether the claim is true
+      const above = Math.random() < 0.5;                  // marginal above average?
+      const claimRising = Math.random() < 0.5;            // statement says "rising"?
+      const truth = (above === claimRising);              // above→rising is the true pairing
+      const promptHTML = `
+        <p>Think of a basketball player's shooting percentage in a single game as his
+           <em>marginal</em> percentage, and his percentage across all games so far as his
+           <em>average</em>.</p>
+        <p><strong>Claim:</strong> when the marginal percentage is <strong>${above ? 'above' : 'below'}</strong>
+           the average, the average must be <strong>${claimRising ? 'rising' : 'falling'}</strong>.</p>
+        <p>Is this true or false?</p>`;
+      const options = ['True', 'False'];
+      const correct = truth ? 0 : 1;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>The marginal value pulls the average toward itself. A new observation
+           <em>above</em> the current average pulls the average <strong>up</strong>; one <em>below</em> it pulls the
+           average <strong>down</strong>. (Scoring 75% in a game when your average is 50% has to raise the average.)</p>
+        <p>So "marginal ${above ? 'above' : 'below'} average \u21D2 average ${above ? 'rising' : 'falling'}" is the
+           correct pairing, which makes this claim <strong>${truth ? 'True' : 'False'}</strong>.</p>`;
+      return { promptHTML, mc: { options, correct }, solutionHTML };
+    }
+  },
+
+  /* ----- 4. MC and AC (original three dropdowns, as matching) --------- */
+  {
+    key: 'mcac',
+    name: 'MC and AC',
+    eyebrow: 'Cost curves',
+    gen(){
+      const pairs = [
+        { p: 'MC lies <strong>below</strong> AC',  e: 'AC is decreasing' },
+        { p: 'MC lies <strong>above</strong> AC',  e: 'AC is increasing' },
+        { p: 'MC <strong>crosses</strong> AC',     e: 'AC is at its minimum' }
+      ];
+      const rowsSrc = shuffle(pairs);
+      const options = shuffle(pairs.map(x => x.e));
+      const rows = rowsSrc.map(r => ({ left: r.p, correct: options.indexOf(r.e) }));
+      const promptHTML = `
+        <p>Apply the marginal-average rule to costs. Match each situation to what it implies about the
+           average cost curve.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Marginal cost pulls average cost toward itself, exactly as a game score pulls a season average.</p>
+        <p>When \\(MC\\lt AC\\), each extra unit costs less than the running average, so <strong>AC is decreasing</strong>.
+           When \\(MC>AC\\), each extra unit costs more, so <strong>AC is increasing</strong>.
+           Therefore a U-shaped AC curve is cut by MC exactly <strong>at its minimum</strong> — the turning point
+           between falling and rising AC.</p>`;
+      return { promptHTML, match: { rows, options }, solutionHTML };
+    }
+  },
+
+  /* ----- 5. AC, AVC and MC at a quantity — NEW ------------------------ */
+  {
+    key: 'accalc',
+    name: 'AC, AVC and MC',
+    eyebrow: 'Average vs marginal',
+    gen(){
+      // EDIT NUMBERS HERE — TC = F + cQ. Q chosen to divide F so AC is clean.
+      const c = pick([2,3,4,5,6,8]);
+      const Qs = pick([4,5,6,8,10,12]);
+      const F  = Qs * pick([2,3,4,5,6,10]);       // divisible by Q
+      const AVC = c, MC = c, AC = round(F/Qs + c, 4);
+      const promptHTML = `
+        <p>A firm's total cost is \\( TC(Q)=${F}+${cf9(c)}Q \\).</p>
+        <p>At \\( Q=${Qs} \\), find average cost, average variable cost, and marginal cost.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Split the total: the fixed part is \\(FC=${F}\\) and the variable part is \\(VC=${cf9(c)}Q\\).</p>
+        <p>\\( AC=\\dfrac{TC}{Q}=\\dfrac{${F}+${cf9(c)}Q}{Q}=\\dfrac{${F}}{Q}+${c} \\),
+           so at \\(Q=${Qs}\\): \\( AC=\\dfrac{${F}}{${Qs}}+${c}=${F/Qs}+${c}=\\mathbf{${AC}} \\).</p>
+        <p>\\( AVC=\\dfrac{VC}{Q}=\\dfrac{${cf9(c)}Q}{Q}=\\mathbf{${AVC}} \\) and
+           \\( MC=\\dfrac{dTC}{dQ}=\\mathbf{${MC}} \\).</p>
+        <p>Note \\( MC=${MC} < AC=${AC} \\) here, so average cost is still <em>falling</em> at this output —
+           spreading the fixed cost over more units.</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(AC=\\)',  answer: AC,  tol: 0.01 },
+          { label: '\\(AVC=\\)', answer: AVC, tol: 0.01 },
+          { label: '\\(MC=\\)',  answer: MC,  tol: 0.01 }
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 6. Output that minimizes average cost — NEW ------------------
+     TC = F + dQ^2  ⇒  AC = F/Q + dQ, MC = 2dQ.
+     Setting MC = AC gives Q* = sqrt(F/d); choose F = d k^2 so Q* = k. */
+  {
+    key: 'acmin',
+    name: 'Minimum average cost',
+    eyebrow: 'MC crosses AC',
+    gen(){
+      // EDIT NUMBERS HERE
+      const d = pick([1,2,3,4,5]);
+      const k = randint(2,10);                   // the AC-minimizing quantity
+      const F = d * k * k;
+      const ACmin = 2 * d * k;
+      const promptHTML = `
+        <p>A firm's total cost is \\( TC(Q)=${F}+${cf9(d)}Q^{2} \\).</p>
+        <p>Find the output that minimizes average cost, and the average cost there.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>\\( AC=\\dfrac{TC}{Q}=\\dfrac{${F}}{Q}+${cf9(d)}Q \\) and
+           \\( MC=\\dfrac{dTC}{dQ}=${2*d}Q \\).</p>
+        <p>Average cost is at its minimum exactly where \\( MC=AC \\) (the marginal-average rule):
+           \\[ ${2*d}Q=\\frac{${F}}{Q}+${cf9(d)}Q
+              \\;\\Rightarrow\\; ${d}Q=\\frac{${F}}{Q}
+              \\;\\Rightarrow\\; Q^{2}=\\frac{${F}}{${d}}=${k*k}
+              \\;\\Rightarrow\\; Q^*=\\mathbf{${k}}. \\]</p>
+        <p>Then \\( AC=\\dfrac{${F}}{${k}}+${cf9(d)}(${k})=${d*k}+${d*k}=\\mathbf{${ACmin}} \\)
+           (and indeed \\( MC=${2*d}\\times${k}=${ACmin} \\), so the curves cross here).</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(Q^*=\\)', answer: k, tol: 0.01 },
+          { label: 'minimum \\(AC=\\)', answer: ACmin, tol: 0.01 }
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 7. Marginal products and MRTS — NEW --------------------------
+     For Q = aK + bL: MP_K = a, MP_L = b, MRTS = MP_L/MP_K = b/a. */
+  {
+    key: 'mrts',
+    name: 'Marginal products & MRTS',
+    eyebrow: 'Production function',
+    gen(){
+      // EDIT NUMBERS HERE
+      const a = pick([1,2,3,4,6]);
+      const b = pick([1,2,3,4,6]);
+      const mrts = round(b/a, 4);
+      const g = (function gcd(m,n){ return n ? gcd(n, m%n) : m; })(b,a);
+      const frac = (a/g === 1) ? String(b/g) : `${b/g}/${a/g}`;
+      const promptHTML = `
+        <p>A firm produces with \\( Q=${cf9(a)}K+${cf9(b)}L \\).</p>
+        <p>Find the marginal product of capital, the marginal product of labor, and the marginal rate of
+           technical substitution \\( MRTS=\\dfrac{MP_L}{MP_K} \\).</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Differentiate the production function:
+           \\( MP_K=\\dfrac{\\partial Q}{\\partial K}=\\mathbf{${a}} \\) and
+           \\( MP_L=\\dfrac{\\partial Q}{\\partial L}=\\mathbf{${b}} \\).
+           Both are constants — capital and labor are perfect substitutes here.</p>
+        <p>\\( MRTS=\\dfrac{MP_L}{MP_K}=\\dfrac{${b}}{${a}}=\\mathbf{${frac}} \\):
+           giving up one worker requires \\( ${frac} \\) more machines to hold output fixed, at every point on
+           the isoquant (so the isoquants are straight lines).</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(MP_K=\\)', answer: a, tol: 0.01 },
+          { label: '\\(MP_L=\\)', answer: b, tol: 0.01 },
+          { label: '\\(MRTS=\\)', answer: mrts, tol: 0.02, accept: [frac] }
+        ],
+        solutionHTML
+      };
+    }
+  }
+
+];
+
+/* ---- Startup ----
+   Primary path: MathJax's pageReady hook calls boot() once math is ready.
+   Fallback: if MathJax can't load (offline), still show questions after 3s. */
+let booted = false;
+function boot(){ if (booted) return; booted = true; buildTopics(); newProblem(); }
+setTimeout(() => { if (!booted) boot(); }, 3000);
+</script>
+</body>
+</html>

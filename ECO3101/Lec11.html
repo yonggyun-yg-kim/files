@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  ECO 3101 — Interactive practice page.  Self-contained: one HTML file.
+  No installation, no server. Double-click to open; drop into a GitHub repo
+  to publish for students.
+
+  HOW IT'S ORGANIZED (for editing later):
+  - All the math/questions live in the QUESTIONS array near the bottom of the
+    <script>. Each entry is one "problem type." To change the random ranges,
+    edit the numbers inside its gen() function — look for "EDIT NUMBERS HERE".
+  - To add a new problem type, copy one block and adjust it.
+  - The look (colors/fonts) is in the <style> block; you can ignore it.
+  ============================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lecture 11 Exercises — Intermediate Microeconomics</title>
+
+<!-- Fonts: IBM Plex family (academic/technical feel) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- MathJax: renders the LaTeX math. Loads from a CDN; needs internet.
+     We boot the app from MathJax's pageReady hook (see config below). -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(', '\\)'], ['$', '$']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+    svg: { fontCache: 'global' },
+    startup: {
+      typeset: false,
+      pageReady: () => MathJax.startup.defaultPageReady().then(() => boot())
+    }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+
+<style>
+  :root{
+    --paper:#eef1f5;        /* page background (cool soft white) */
+    --grid:#e0e5ec;         /* faint graph-paper lines */
+    --card:#ffffff;
+    --ink:#17263a;          /* primary text: deep slate-navy */
+    --muted:#5d6b7c;        /* secondary text */
+    --line:#dde3ea;         /* hairlines / borders */
+    --accent:#2b5c8a;       /* scholarly blue */
+    --accent-d:#1f456a;
+    --success:#2f7a52;
+    --success-bg:#eaf4ee;
+    --error:#b0432e;
+    --error-bg:#f7ece9;
+    --shadow:0 1px 2px rgba(23,38,58,.05), 0 12px 30px rgba(23,38,58,.07);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    color:var(--ink);
+    background-color:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:26px 26px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{ max-width:740px; margin:0 auto; padding:40px 20px 80px; }
+
+  /* ---- Header ---- */
+  .kicker{
+    font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.13em;
+    color:var(--accent); margin:0 0 10px;
+  }
+  header{ display:flex; align-items:center; gap:14px; margin-bottom:6px; }
+  .mark{ flex:0 0 auto; }
+  .mark svg{ display:block; }
+  h1{
+    font-family:'IBM Plex Serif', Georgia, serif;
+    font-weight:600; font-size:1.7rem; margin:0; letter-spacing:.01em;
+  }
+  .sub{ color:var(--muted); margin:.4em 0 26px; font-size:1rem; }
+
+  /* ---- Topic selector ---- */
+  .topics{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+  .topic{
+    font:500 .85rem/1 'IBM Plex Sans', sans-serif;
+    color:var(--muted); background:var(--card);
+    border:1px solid var(--line); border-radius:999px;
+    padding:8px 15px; cursor:pointer; transition:all .15s ease;
+  }
+  .topic:hover{ border-color:var(--accent); color:var(--accent); }
+  .topic.active{
+    background:var(--accent); border-color:var(--accent);
+    color:#fff; box-shadow:0 4px 12px rgba(43,92,138,.22);
+  }
+
+  /* ---- Card ---- */
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:26px 26px 22px; box-shadow:var(--shadow);
+  }
+  .eyebrow{
+    font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.1em; color:var(--accent);
+    margin-bottom:12px; display:flex; align-items:center; gap:8px;
+  }
+  .prompt{ font-size:1.05rem; }
+  .prompt p{ margin:.5em 0; }
+  .prompt .hint{
+    color:var(--muted); font-size:.92rem;
+    border-left:3px solid var(--line); padding-left:12px; margin-top:14px;
+  }
+
+  /* ---- Answer fields ---- */
+  .answers{ margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+  .field{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .field label{ font-size:.95rem; color:var(--ink); min-width:0; }
+  .field .inputwrap{ display:inline-flex; align-items:center; gap:6px; }
+  .field .prefix{ color:var(--muted); font-family:'IBM Plex Mono', monospace; }
+  .field input{
+    width:130px; font:500 1rem 'IBM Plex Mono', monospace;
+    color:var(--ink); background:var(--paper);
+    border:1.5px solid var(--line); border-radius:9px; padding:9px 11px;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .field input:focus{ outline:none; border-color:var(--accent); background:#fff; }
+  .field .unit{ color:var(--muted); font-size:.9rem; }
+  .field.ok input{ border-color:var(--success); background:var(--success-bg); }
+  .field.no input{ border-color:var(--error); background:var(--error-bg); }
+  .field .tag{
+    font:600 .68rem/1 'IBM Plex Mono', monospace; text-transform:uppercase;
+    letter-spacing:.06em; padding:3px 7px; border-radius:6px; opacity:0;
+  }
+  .field.ok .tag{ opacity:1; color:var(--success); background:var(--success-bg); }
+  .field.no .tag{ opacity:1; color:var(--error); background:var(--error-bg); }
+
+  /* ---- Multiple choice ---- */
+  .choices{ margin-top:20px; display:flex; flex-direction:column; gap:10px; }
+  .choice{
+    text-align:left; font:500 1rem 'IBM Plex Sans', sans-serif; color:var(--ink);
+    background:var(--paper); border:1.5px solid var(--line); border-radius:11px;
+    padding:13px 16px; cursor:pointer; transition:all .13s ease;
+    display:flex; align-items:center; gap:12px;
+  }
+  .choice:hover{ border-color:var(--accent); }
+  .choice .bullet{
+    flex:0 0 auto; width:22px; height:22px; border-radius:50%;
+    border:1.5px solid var(--line); display:inline-flex; align-items:center;
+    justify-content:center; font:600 .8rem 'IBM Plex Mono', monospace; color:var(--muted);
+  }
+  .choice.sel{ border-color:var(--accent); background:#fff; box-shadow:0 3px 10px rgba(43,92,138,.14); }
+  .choice.sel .bullet{ border-color:var(--accent); color:var(--accent); }
+  .choice.ok{ border-color:var(--success); background:var(--success-bg); }
+  .choice.ok .bullet{ border-color:var(--success); color:var(--success); background:#fff; }
+  .choice.no{ border-color:var(--error); background:var(--error-bg); }
+  .choice.no .bullet{ border-color:var(--error); color:var(--error); background:#fff; }
+
+  /* ---- Multi-select (checkbox) ---- */
+  .choice .box{
+    flex:0 0 auto; width:21px; height:21px; border-radius:6px;
+    border:1.5px solid var(--line); display:inline-flex; align-items:center;
+    justify-content:center; background:#fff;
+  }
+  .choice .box svg{ width:13px; height:13px; opacity:0; }
+  .choice.sel .box{ border-color:var(--accent); background:var(--accent); }
+  .choice.sel .box svg{ opacity:1; }
+  .choice.ok .box{ border-color:var(--success); background:var(--success); }
+  .choice.ok .box svg{ opacity:1; }
+  .choice.no .box{ border-color:var(--error); background:var(--error); }
+  .choice.no .box svg{ opacity:1; }
+
+  /* ---- Matching ---- */
+  .matchrows{ margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+  .matchrow{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .matchrow .ml{ flex:1 1 250px; font-size:.98rem; }
+  .matchrow select{
+    font:500 .95rem 'IBM Plex Sans',sans-serif; color:var(--ink); background:var(--paper);
+    border:1.5px solid var(--line); border-radius:9px; padding:9px 11px; min-width:190px; cursor:pointer;
+  }
+  .matchrow select:focus{ outline:none; border-color:var(--accent); background:#fff; }
+  .matchrow.ok select{ border-color:var(--success); background:var(--success-bg); }
+  .matchrow.no select{ border-color:var(--error); background:var(--error-bg); }
+  .matchrow .tag{ font:600 .68rem/1 'IBM Plex Mono',monospace; text-transform:uppercase;
+    letter-spacing:.06em; padding:3px 7px; border-radius:6px; opacity:0; }
+  .matchrow.ok .tag{ opacity:1; color:var(--success); background:var(--success-bg); }
+  .matchrow.no .tag{ opacity:1; color:var(--error); background:var(--error-bg); }
+
+  /* ---- Diagram ---- */
+  .diagram{ margin:18px 0 6px; text-align:center; }
+  .diagram svg{ max-width:100%; height:auto; background:#fff;
+    border:1px solid var(--line); border-radius:10px; }
+  .diagram .cap{ color:var(--muted); font-size:.85rem; margin-top:6px; }
+
+  /* ---- Data table (cost / schedule tables in prompts) ---- */
+  .costtable{
+    border-collapse:collapse; margin:16px auto; background:#fff;
+    font:500 .95rem 'IBM Plex Mono',monospace; min-width:280px;
+  }
+  .costtable th, .costtable td{
+    border:1px solid var(--line); padding:7px 16px; text-align:right;
+  }
+  .costtable th{
+    background:var(--paper); font:600 .8rem 'IBM Plex Sans',sans-serif;
+    text-transform:uppercase; letter-spacing:.05em; color:var(--muted);
+  }
+
+  /* ---- Actions ---- */
+  .actions{ display:flex; align-items:center; gap:10px; margin-top:22px; flex-wrap:wrap; }
+  .btn{
+    font:600 .92rem 'IBM Plex Sans', sans-serif; cursor:pointer;
+    border-radius:10px; padding:11px 18px; border:1.5px solid transparent;
+    transition:all .15s ease;
+  }
+  .btn-primary{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .btn-primary:hover{ background:var(--accent-d); border-color:var(--accent-d); }
+  .btn-ghost{ background:#fff; color:var(--accent); border-color:var(--line); }
+  .btn-ghost:hover{ border-color:var(--accent); }
+  .btn-text{
+    background:none; border:none; cursor:pointer; color:var(--muted);
+    font:500 .9rem 'IBM Plex Sans', sans-serif; text-decoration:underline;
+    text-underline-offset:3px; padding:6px 4px;
+  }
+  .btn-text:hover{ color:var(--accent); }
+  .spacer{ flex:1 1 auto; }
+  .score{ font:500 .85rem 'IBM Plex Mono', monospace; color:var(--muted); }
+
+  /* ---- Feedback + solution ---- */
+  .feedback{ margin-top:16px; font-weight:500; font-size:.96rem; display:none; }
+  .feedback.show{ display:block; }
+  .feedback.good{ color:var(--success); }
+  .feedback.bad{ color:var(--error); }
+  .solution{
+    display:none; margin-top:14px; padding:16px 18px;
+    background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    font-size:.95rem;
+  }
+  .solution.show{ display:block; }
+  .solution h4{
+    margin:0 0 8px; font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.08em; color:var(--muted);
+  }
+  .solution p{ margin:.4em 0; }
+
+  footer{ margin-top:30px; color:var(--muted); font-size:.82rem; text-align:center; line-height:1.6; }
+  footer a{ color:var(--accent); text-decoration:none; }
+  footer a:hover{ text-decoration:underline; }
+
+  @media (max-width:520px){
+    .wrap{ padding:26px 14px 60px; }
+    .actions{ gap:8px; }
+    .spacer{ flex-basis:100%; height:0; }
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .card{ animation:rise .25s ease both; }
+    @keyframes rise{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">ECO 3101 · Long-Run Costs</p>
+  <header>
+    <span class="mark" aria-hidden="true">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+        <path d="M5 29V5M5 29h24" stroke="#2b5c8a" stroke-width="2" stroke-linecap="round"/>
+        <path d="M6 24C12 24 13 9 28 8" stroke="#17263a" stroke-width="2" stroke-linecap="round" fill="none"/>
+      </svg>
+    </span>
+    <h1>Lecture 11 Exercises</h1>
+  </header>
+  <p class="sub">Intermediate Microeconomic Theory. Fresh numbers every time — work it out, type your answer, check yourself.</p>
+
+  <div class="topics" id="topics" role="group" aria-label="Choose a problem type"></div>
+
+  <div class="card" id="card">
+    <div class="eyebrow"><span id="eyebrow">—</span></div>
+    <div class="prompt" id="prompt"></div>
+
+    <div class="answers" id="answers"></div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="check">Check answer</button>
+      <button class="btn btn-ghost" id="next">New question</button>
+      <button class="btn-text" id="steps">Show steps</button>
+      <span class="spacer"></span>
+      <span class="score" id="score">Solved 0</span>
+    </div>
+
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <div class="solution" id="solution"></div>
+  </div>
+
+  <footer>
+    Ungraded self-practice — reload for a fresh set.<br>
+    Built for <strong>ECO 3101</strong> at Florida State University.<br>
+    Found an error, or have a correction or suggestion? Email
+    <a href="mailto:ykim22@fsu.edu">ykim22@fsu.edu</a>.
+  </footer>
+</div>
+
+<script>
+/* ============================ small helpers ============================ */
+const $ = (id) => document.getElementById(id);
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const randint = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+function shuffle(a){ a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const round = (x, d=6) => { const f = 10**d; return Math.round((x + Number.EPSILON) * f) / f; };
+const comma = (x) => x.toLocaleString('en-US');
+function parseNum(s){
+  if (s == null) return null;
+  s = String(s).trim().replace(/,/g,'').replace(/\s+/g,'');
+  if (s === '') return null;
+  // allow simple fractions like -3/4
+  const frac = s.match(/^(-?\d*\.?\d+)\/(-?\d*\.?\d+)$/);
+  if (frac){ const d = parseFloat(frac[2]); if (d === 0) return null; return parseFloat(frac[1]) / d; }
+  const v = Number(s);
+  return Number.isFinite(v) ? v : null;
+}
+function normTxt(s){
+  return String(s == null ? '' : s).toLowerCase()
+    .replace(/\s+/g,'').replace(/[*·×]/g,'').replace(/\\cdot/g,'')
+    .replace(/\^/g,'').replace(/\{|\}/g,'');
+}
+function typeset(){ if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); }
+
+/* ============================ state / engine ============================ */
+let current = 0;      // index into QUESTIONS
+let problem = null;   // the generated instance
+let solvedCount = 0;
+let mcPick = null;    // selected choice index for MC questions
+let multiPick = new Set(); // selected indices for multi-select questions
+
+function buildTopics(){
+  const box = $('topics');
+  box.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const b = document.createElement('button');
+    b.className = 'topic' + (i === current ? ' active' : '');
+    b.textContent = q.name;
+    b.addEventListener('click', () => { current = i; syncTopics(); newProblem(); });
+    box.appendChild(b);
+  });
+}
+function syncTopics(){
+  [...$('topics').children].forEach((b, i) => b.classList.toggle('active', i === current));
+}
+
+function newProblem(){
+  problem = QUESTIONS[current].gen();
+  mcPick = null;
+  multiPick = new Set();
+  $('eyebrow').textContent = QUESTIONS[current].eyebrow || QUESTIONS[current].name;
+  $('prompt').innerHTML = problem.promptHTML;
+
+  const wrap = $('answers');
+  wrap.innerHTML = '';
+
+  if (problem.mc){
+    // multiple-choice rendering
+    const list = document.createElement('div');
+    list.className = 'choices';
+    problem.mc.options.forEach((opt, i) => {
+      const c = document.createElement('button');
+      c.className = 'choice';
+      c.dataset.idx = i;
+      c.innerHTML = `<span class="bullet">${String.fromCharCode(65+i)}</span><span>${opt}</span>`;
+      c.addEventListener('click', () => {
+        mcPick = i;
+        [...list.children].forEach(ch => ch.classList.remove('sel','ok','no'));
+        c.classList.add('sel');
+      });
+      list.appendChild(c);
+    });
+    wrap.appendChild(list);
+  } else if (problem.multi){
+    // multiple-answers (checkbox) rendering
+    const list = document.createElement('div');
+    list.className = 'choices';
+    problem.multi.options.forEach((opt, i) => {
+      const c = document.createElement('button');
+      c.className = 'choice';
+      c.dataset.idx = i;
+      c.innerHTML = `<span class="box"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.2 3.2L13 4.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>${opt}</span>`;
+      c.addEventListener('click', () => {
+        if (multiPick.has(i)) multiPick.delete(i); else multiPick.add(i);
+        c.classList.toggle('sel', multiPick.has(i));
+        c.classList.remove('ok','no');
+      });
+      list.appendChild(c);
+    });
+    wrap.appendChild(list);
+  } else if (problem.match){
+    // matching rendering (each row: statement + a <select> of labels)
+    const box = document.createElement('div');
+    box.className = 'matchrows';
+    const optionsHTML = ['<option value="">\u2014 choose \u2014</option>']
+      .concat(problem.match.options.map((o,j) => `<option value="${j}">${o}</option>`)).join('');
+    problem.match.rows.forEach((row, i) => {
+      const r = document.createElement('div');
+      r.className = 'matchrow';
+      r.dataset.idx = i;
+      r.innerHTML = `<span class="ml">${row.left}</span><select data-idx="${i}">${optionsHTML}</select><span class="tag"></span>`;
+      box.appendChild(r);
+    });
+    wrap.appendChild(box);
+  } else {
+    // input-field rendering (numeric or text parts)
+    problem.parts.forEach((part, idx) => {
+      const field = document.createElement('div');
+      field.className = 'field';
+      field.innerHTML = `
+        <label>${part.label}</label>
+        <span class="inputwrap">
+          ${part.prefix ? `<span class="prefix">${part.prefix}</span>` : ''}
+          <input type="text" inputmode="${part.type === 'text' ? 'text' : 'decimal'}"
+                 autocomplete="off" data-idx="${idx}" placeholder="${part.placeholder || '?'}">
+          ${part.unit ? `<span class="unit">${part.unit}</span>` : ''}
+        </span>
+        <span class="tag"></span>`;
+      wrap.appendChild(field);
+    });
+  }
+
+  $('feedback').className = 'feedback';
+  $('feedback').textContent = '';
+  $('solution').className = 'solution';
+  $('solution').innerHTML = problem.solutionHTML;
+
+  typeset();
+  const first = wrap.querySelector('input');
+  if (first) first.focus();
+}
+
+function checkAnswers(){
+  const fb = $('feedback');
+
+  if (problem.mc){
+    const list = $('answers').querySelector('.choices');
+    if (mcPick == null){
+      fb.className = 'feedback show bad';
+      fb.textContent = 'Select an option first.';
+      return;
+    }
+    const correct = problem.mc.correct;
+    [...list.children].forEach((ch, i) => {
+      ch.classList.remove('sel','ok','no');
+      if (i === correct) ch.classList.add('ok');
+      else if (i === mcPick) ch.classList.add('no');
+    });
+    fb.className = 'feedback show';
+    if (mcPick === correct){
+      fb.classList.add('good'); fb.textContent = '\u2713 Correct.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite — the highlighted option is correct. See the steps below.';
+    }
+    return;
+  }
+
+  if (problem.multi){
+    const list = $('answers').querySelector('.choices');
+    if (multiPick.size === 0){
+      fb.className = 'feedback show bad';
+      fb.textContent = 'Select at least one option (or as many as apply).';
+      return;
+    }
+    const correct = new Set(problem.multi.correct);
+    const ok = correct.size === multiPick.size && [...correct].every(i => multiPick.has(i));
+    [...list.children].forEach((ch, i) => {
+      ch.classList.remove('sel','ok','no');
+      if (correct.has(i)) ch.classList.add('ok');
+      else if (multiPick.has(i)) ch.classList.add('no');
+    });
+    fb.className = 'feedback show';
+    if (ok){
+      fb.classList.add('good'); fb.textContent = '\u2713 Correct.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite \u2014 the correct set is highlighted green. See the steps below.';
+    }
+    return;
+  }
+
+  if (problem.match){
+    const rows = [...$('answers').querySelectorAll('.matchrow')];
+    let all = true, blank = false;
+    rows.forEach(r => {
+      const i = +r.dataset.idx;
+      const sel = r.querySelector('select');
+      const tag = r.querySelector('.tag');
+      r.classList.remove('ok','no');
+      if (sel.value === ''){ blank = true; all = false; if(tag) tag.textContent=''; return; }
+      if (+sel.value === problem.match.rows[i].correct){ r.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { r.classList.add('no'); if(tag) tag.textContent='try again'; all = false; }
+    });
+    fb.className = 'feedback show';
+    if (blank){ fb.classList.add('bad'); fb.textContent = 'Match every row before checking.'; }
+    else if (all){
+      fb.classList.add('good'); fb.textContent = '\u2713 All matched correctly.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite \u2014 the green rows are right; fix the others or peek at the steps.';
+    }
+    return;
+  }
+
+  const inputs = [...$('answers').querySelectorAll('input')];
+  let allCorrect = true, anyBlank = false;
+
+  inputs.forEach(inp => {
+    const idx = +inp.dataset.idx;
+    const part = problem.parts[idx];
+    const field = inp.closest('.field');
+    const tag = field.querySelector('.tag');
+    field.classList.remove('ok', 'no');
+
+    if (part.type === 'text'){
+      const raw = inp.value.trim();
+      if (raw === ''){ anyBlank = true; allCorrect = false; if(tag) tag.textContent=''; return; }
+      const got = normTxt(raw);
+      const ok = part.accept.map(normTxt).includes(got);
+      if (ok){ field.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { field.classList.add('no'); if(tag) tag.textContent='try again'; allCorrect = false; }
+    } else {
+      const val = parseNum(inp.value);
+      if (val === null){ anyBlank = true; allCorrect = false; if(tag) tag.textContent=''; return; }
+      if (Math.abs(val - part.answer) <= (part.tol ?? 0.01)){ field.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { field.classList.add('no'); if(tag) tag.textContent='try again'; allCorrect = false; }
+    }
+  });
+
+  fb.className = 'feedback show';
+  if (anyBlank){
+    fb.classList.add('bad');
+    fb.textContent = 'Enter an answer in each blank.';
+  } else if (allCorrect){
+    fb.classList.add('good');
+    fb.textContent = inputs.length > 1 ? '\u2713 All correct — nice work.' : '\u2713 Correct.';
+    solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+  } else {
+    fb.classList.add('bad');
+    fb.textContent = 'Not quite — fix the highlighted blank and try again, or peek at the steps.';
+  }
+}
+
+function showSteps(){ $('solution').classList.add('show'); typeset(); }
+
+$('check').addEventListener('click', checkAnswers);
+$('next').addEventListener('click', newProblem);
+$('steps').addEventListener('click', showSteps);
+$('answers').addEventListener('keydown', (e) => { if (e.key === 'Enter') checkAnswers(); });
+
+/* =========================================================================
+   QUESTIONS — each entry is one problem type. Edit numbers inside gen().
+   ========================================================================= */
+/* =========================================================================
+   Lecture 11 (merged 11a + 11b) — Long-Run Costs:
+   isoquants & isocosts, cost-minimizing input choice, short run vs long run,
+   and returns to scale (with the implied shape of average cost).
+   ========================================================================= */
+
+/* ---- isoquant / isocost diagram -------------------------------------
+   A = (La,Ka) is capital-light, B = (Lb,Kb) is capital-heavy, both on the
+   same isoquant. The isoquant is fitted as K = c / L^alpha through both. */
+function plot11(A, B, w, r1, r2, TC1, TC2, showIso2){
+  const W = 400, H = 336, m = { l: 44, r: 16, t: 22, b: 40 };
+  const pw = W - m.l - m.r, ph = H - m.t - m.b;
+  const cand = [A.L, B.L, A.K, B.K, TC1/w, TC1/r1];
+  if (showIso2) cand.push(TC2/w, TC2/r2);
+  const AX = Math.max(4, Math.ceil(Math.max.apply(null, cand) / 2) * 2);
+  const sx = v => m.l + (v / AX) * pw;
+  const sy = v => m.t + ph - (v / AX) * ph;
+  let g = '';
+  for (let i = 0; i <= AX; i += (AX > 12 ? 2 : 1)){
+    g += `<line x1="${sx(i)}" y1="${m.t}" x2="${sx(i)}" y2="${m.t+ph}" stroke="#eef1f5"/>`;
+    g += `<line x1="${m.l}" y1="${sy(i)}" x2="${m.l+pw}" y2="${sy(i)}" stroke="#eef1f5"/>`;
+    g += `<text x="${sx(i)}" y="${m.t+ph+15}" text-anchor="middle" font-size="10" fill="#8b97a6">${i}</text>`;
+    if (i > 0) g += `<text x="${m.l-7}" y="${sy(i)+3}" text-anchor="end" font-size="10" fill="#8b97a6">${i}</text>`;
+  }
+  /* isoquant through A and B: K = c / L^alpha */
+  const alpha = Math.log(A.K / B.K) / Math.log(B.L / A.L);
+  const c = A.K * Math.pow(A.L, alpha);
+  let d = '', started = false;
+  for (let L = 0.35; L <= AX + 0.001; L += 0.05){
+    const K = c / Math.pow(L, alpha);
+    if (K > AX || K < 0.12) continue;
+    d += (started ? 'L' : 'M') + sx(L).toFixed(1) + ' ' + sy(K).toFixed(1) + ' ';
+    started = true;
+  }
+  g += `<path d="${d}" fill="none" stroke="#5b8db8" stroke-width="2"/>`;
+  /* isocost lines */
+  const iso = (TC, r, col, dash) =>
+    `<line x1="${sx(0)}" y1="${sy(TC/r)}" x2="${sx(TC/w)}" y2="${sy(0)}"
+       stroke="${col}" stroke-width="2" ${dash ? 'stroke-dasharray="6 4"' : ''}/>`;
+  g += iso(TC1, r1, '#7d5ba6', false);
+  if (showIso2) g += iso(TC2, r2, '#3f8f5e', true);
+  /* points */
+  const dot = (P, lab, dx, dy) =>
+    `<circle cx="${sx(P.L)}" cy="${sy(P.K)}" r="5" fill="#17263a"/>` +
+    `<text x="${sx(P.L)+(dx||8)}" y="${sy(P.K)+(dy||-9)}" font-size="13" font-weight="700" fill="#17263a">${lab}</text>`;
+  g += dot(A, 'A');
+  g += dot(B, 'B', -18, -9);
+  /* axis lines + labels */
+  g += `<line x1="${m.l}" y1="${m.t}" x2="${m.l}" y2="${m.t+ph}" stroke="#17263a" stroke-width="1.5"/>`;
+  g += `<line x1="${m.l}" y1="${m.t+ph}" x2="${m.l+pw}" y2="${m.t+ph}" stroke="#17263a" stroke-width="1.5"/>`;
+  g += `<text x="${m.l+pw}" y="${m.t+ph+30}" text-anchor="end" font-size="12" fill="#5d6b7c">LABOR (L)</text>`;
+  g += `<text x="2" y="11" font-size="12" fill="#5d6b7c">CAPITAL (K)</text>`;
+  const cap = showIso2
+    ? 'Purple (solid) = isocost at the original rental rate; green (dashed) = isocost at the new rental rate.'
+    : 'Purple line = isocost; blue curve = isoquant.';
+  return `<div class="diagram"><svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${g}</svg>
+          <div class="cap">${cap}</div></div>`;
+}
+
+/* ---- production-function terms, with degree measured in twelfths ----- */
+const TERMS12 = [
+  { tex: '3K',                       d: 12 },
+  { tex: '4L',                       d: 12 },
+  { tex: '2K',                       d: 12 },
+  { tex: '5L',                       d: 12 },
+  { tex: '\\sqrt{K\\cdot L}',        d: 12 },
+  { tex: 'K^{1/2}L^{1/2}',           d: 12 },
+  { tex: 'K^{2}',                    d: 24 },
+  { tex: 'L^{2}',                    d: 24 },
+  { tex: 'K\\cdot L',                d: 24 },
+  { tex: 'K^{3/2}',                  d: 18 },
+  { tex: 'K^{1/3}L^{3/4}',           d: 13 },
+  { tex: 'K^{1/2}L^{3/4}',           d: 15 },
+  { tex: 'K^{2/3}L^{1/2}',           d: 14 },
+  { tex: 'K^{1/3}L^{1/2}',           d: 10 },
+  { tex: 'K^{3/4}L^{1/6}',           d: 11 },
+  { tex: 'K^{1/4}L^{1/2}',           d:  9 },
+  { tex: 'K^{2/3}L^{1/6}',           d: 10 },
+  { tex: 'K^{1/2}L^{1/3}',           d: 10 },
+  { tex: '\\sqrt{K}',                d:  6 },
+  { tex: 'L^{1/3}',                  d:  4 }
+];
+const degTex = d => {
+  const g = (function gcd(a,b){ return b ? gcd(b, a%b) : a; })(d, 12);
+  const n = d/g, q = 12/g;
+  return q === 1 ? String(n) : `\\tfrac{${n}}{${q}}`;
+};
+
+const QUESTIONS = [
+
+  /* ----- 1. Returns to scale & the AC curve (original 11b) ------------ */
+  {
+    key: 'rts',
+    name: 'Returns to scale',
+    eyebrow: 'Scaling all inputs',
+    gen(){
+      // EDIT NUMBERS HERE — pick a class, then terms consistent with it.
+      const cls = pick(['increasing','constant','decreasing']);
+      const eq = TERMS12.filter(t => t.d === 12);
+      const hi = TERMS12.filter(t => t.d > 12);
+      const lo = TERMS12.filter(t => t.d < 12);
+      let terms;
+      if (cls === 'constant'){
+        terms = shuffle(eq).slice(0, randint(2,3));
+      } else if (cls === 'increasing'){
+        // all degrees >= 1 with at least one strictly greater
+        terms = shuffle(hi).slice(0, randint(1,2))
+                  .concat(Math.random() < 0.6 ? shuffle(eq).slice(0,1) : []);
+        if (terms.length < 2) terms = terms.concat(shuffle(hi).filter(t => !terms.includes(t)).slice(0,1));
+      } else {
+        // all degrees <= 1 with at least one strictly smaller
+        terms = shuffle(lo).slice(0, randint(2,3));
+      }
+      terms = shuffle(terms);
+      const fTex = terms.map(t => t.tex).join('+');
+      const degs = terms.map(t => t.d);
+      const acShape = cls === 'increasing' ? 'decreasing'
+                    : cls === 'constant'   ? 'constant' : 'increasing';
+      const options = ['increasing', 'constant', 'decreasing'];
+      const rows = [
+        { left: 'This production function exhibits &hellip; returns to scale', correct: options.indexOf(cls) },
+        { left: 'Its associated long-run average cost curve is &hellip;',      correct: options.indexOf(acShape) }
+      ];
+      const promptHTML = `
+        <p>Consider the production function
+           \\[ f(K,L)=${fTex}. \\]</p>
+        <p>Classify its returns to scale, and say what that implies for the long-run average cost curve.</p>`;
+      const degList = terms.map(t => `\\(${t.tex}\\) has degree \\(${degTex(t.d)}\\)`).join(', ');
+      const relation = cls === 'increasing' ? 'more than doubles'
+                     : cls === 'constant'   ? 'exactly doubles' : 'less than doubles';
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Scale <em>both</em> inputs by a factor \\(t>1\\) and see what happens to output. A term
+           \\(K^{p}L^{q}\\) scales by \\(t^{p+q}\\), so compare each term's degree \\(p+q\\) with 1.</p>
+        <p>Here ${degList}.</p>
+        <p>${cls === 'constant'
+             ? `Every degree equals 1, so \\( f(tK,tL)=t\\,f(K,L) \\): doubling both inputs exactly doubles output.
+                That is <strong>constant</strong> returns to scale.`
+             : cls === 'increasing'
+             ? `No degree is below 1 and at least one is above it, so \\( f(tK,tL)>t\\,f(K,L) \\) for \\(t>1\\):
+                doubling both inputs ${relation} output. That is <strong>increasing</strong> returns to scale.`
+             : `Every degree is below 1, so \\( f(tK,tL)\\lt t\\,f(K,L) \\) for \\(t>1\\): doubling both inputs
+                ${relation} output. That is <strong>decreasing</strong> returns to scale.`}</p>
+        <p>Cost follows directly. ${cls === 'increasing'
+             ? `Output grows faster than inputs, so cost per unit falls as the firm scales up — LRAC is
+                <strong>decreasing</strong> (economies of scale).`
+             : cls === 'constant'
+             ? `Output and inputs grow together, so cost per unit doesn't change — LRAC is <strong>constant</strong>.`
+             : `Output grows more slowly than inputs, so cost per unit rises as the firm scales up — LRAC is
+                <strong>increasing</strong> (diseconomies of scale).`}</p>`;
+      return { promptHTML, match: { rows, options }, solutionHTML };
+    }
+  },
+
+  /* ----- 2. Cost of a bundle before/after a price change (orig. 11a) -- */
+  {
+    key: 'isocost',
+    name: 'Isocost and input choice',
+    eyebrow: 'Cost minimization',
+    gen(){
+      // EDIT NUMBERS HERE — A is labor-heavy, B is capital-heavy, same isoquant.
+      // Need r2 (Kb-Ka) < w (La-Lb) < r1 (Kb-Ka) so the firm switches A -> B.
+      let A, B, w, r1, r2, tries = 0;
+      while (true){
+        tries++;
+        const Lb = randint(2,4), La = Lb + randint(2,4);
+        const Ka = randint(1,2), Kb = Ka + randint(1,3);
+        w = pick([10,20]);
+        const dL = La - Lb, dK = Kb - Ka;
+        const need = w * dL / dK;                       // r1 > need > r2
+        const r1c = [10,20,30,40].filter(r => r > need);
+        const r2c = [5,10,20,30].filter(r => r < need);
+        if (r1c.length && r2c.length){
+          A = { L: La, K: Ka }; B = { L: Lb, K: Kb };
+          r1 = pick(r1c); r2 = pick(r2c);
+          if (r2 < r1) break;
+        }
+        if (tries > 400){ A = {L:6,K:1}; B = {L:3,K:3}; w = 10; r1 = 20; r2 = 10; break; }
+      }
+      const costA1 = w*A.L + r1*A.K, costB1 = w*B.L + r1*B.K;
+      const costA2 = w*A.L + r2*A.K, costB2 = w*B.L + r2*B.K;
+      const promptHTML = `
+        <p>A firm produces a fixed level of output. Bundles \\(A\\) and \\(B\\) both lie on that isoquant:
+           \\( A=(L,K)=(${A.L},${A.K}) \\) and \\( B=(L,K)=(${B.L},${B.K}) \\).
+           The wage is \\( w=\\$${w} \\) and the rental rate of capital is \\( r=\\$${r1} \\).</p>
+        ${plot11(A, B, w, r1, r2, costA1, costB2, false)}
+        <p>The rental rate then <strong>falls</strong> to \\( r=\\$${r2} \\). Compute the total cost of each
+           bundle before and after:</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Total cost of any bundle is \\( TC=wL+rK \\).</p>
+        <p><strong>At the original \\(r=${r1}\\):</strong><br>
+           \\( TC_A=${w}(${A.L})+${r1}(${A.K})=${w*A.L}+${r1*A.K}=\\mathbf{${costA1}} \\)<br>
+           \\( TC_B=${w}(${B.L})+${r1}(${B.K})=${w*B.L}+${r1*B.K}=${costB1} \\)<br>
+           So \\(A\\) is the cost-minimizing way to produce this output — the isocost line through \\(A\\) is the
+           lowest one touching the isoquant.</p>
+        <p><strong>After \\(r\\) falls to \\(${r2}\\):</strong><br>
+           \\( TC_A=${w}(${A.L})+${r2}(${A.K})=\\mathbf{${costA2}} \\)<br>
+           \\( TC_B=${w}(${B.L})+${r2}(${B.K})=\\mathbf{${costB2}} \\)</p>
+        <p>Now \\(B\\) is cheaper (\\(${costB2}\\) versus \\(${costA2}\\)), so the firm switches to the
+           <em>capital-intensive</em> bundle \\(B\\). Cheaper capital makes the isocost lines flatter, and the
+           firm substitutes capital for labor while producing the same output.</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: `\\(TC_A\\) at \\(r=${r1}\\):`, answer: costA1, tol: 0.01 },
+          { label: `\\(TC_A\\) at \\(r=${r2}\\):`, answer: costA2, tol: 0.01 },
+          { label: `\\(TC_B\\) at \\(r=${r2}\\):`, answer: costB2, tol: 0.01 }
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 3. Short run vs long run adjustment (original 11a Q1) -------- */
+  {
+    key: 'srlr',
+    name: 'Short run vs long run',
+    eyebrow: 'Adjusting inputs',
+    gen(){
+      const answer = 'In the short run only labor can change, so the firm reaches the new output at a higher cost than in the long run';
+      const options = [
+        answer,
+        'The short-run and long-run input bundles are always identical',
+        'In the short run the firm adjusts capital first, then labor in the long run',
+        'The long-run bundle costs more because the firm adjusts both inputs'
+      ];
+      const correct = 0;
+      const shuffled = shuffle(options);
+      const promptHTML = `
+        <p>A firm is producing at a cost-minimizing bundle when the price of its output rises, so it wants to
+           produce more. Capital is fixed in the short run but variable in the long run.</p>
+        <p>Which statement correctly compares the firm's short-run and long-run response?</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>To raise output in the <strong>short run</strong>, the firm can only add labor — capital is stuck at its
+           existing level. It moves horizontally to the higher isoquant, landing at a bundle that is
+           labor-heavy relative to what it would choose freely.</p>
+        <p>In the <strong>long run</strong> both inputs adjust, so the firm returns to a genuine tangency between
+           the new isoquant and the lowest possible isocost line — restoring
+           \\( MRTS=\\dfrac{w}{r} \\).</p>
+        <p>Because the long-run choice is made with strictly more freedom (it could always have picked the
+           short-run bundle but didn't), long-run cost for the same output is <strong>no higher</strong>, and
+           generally lower, than short-run cost.</p>`;
+      return { promptHTML, mc: { options: shuffled, correct: shuffled.indexOf(answer) }, solutionHTML };
+    }
+  },
+
+  /* ----- 4. Cost-minimizing bundle for Cobb-Douglas — NEW -------------
+     f = sqrt(K L) = Q.  MRTS = K/L = w/r  ⇒  K = (w/r) L.
+     With w = 10 m^2, r = 10 n^2 and Q = m n k: L = n^2 k, K = m^2 k. */
+  {
+    key: 'costmin',
+    name: 'Cost-minimizing bundle',
+    eyebrow: '\\(MRTS=w/r\\)',
+    gen(){
+      // EDIT NUMBERS HERE
+      let m = pick([1,2,3]), n = pick([1,2,3]);
+      while (m === n) n = pick([1,2,3]);
+      const k = randint(2,6);
+      const w = 10*m*m, r = 10*n*n;
+      const Q = m*n*k;
+      const L = n*n*k, K = m*m*k;
+      const TC = w*L + r*K;
+      const promptHTML = `
+        <p>A firm produces with \\( f(K,L)=\\sqrt{K\\cdot L} \\) and must produce \\( Q=${Q} \\) units.
+           The wage is \\( w=\\$${w} \\) and the rental rate of capital is \\( r=\\$${r} \\).</p>
+        <p>Find the cost-minimizing input bundle and the resulting total cost.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p><strong>Step 1 — the tangency condition.</strong> Marginal products are
+           \\( MP_L=\\dfrac{\\partial f}{\\partial L}=\\dfrac12\\sqrt{K/L} \\) and
+           \\( MP_K=\\dfrac12\\sqrt{L/K} \\), so
+           \\[ MRTS=\\frac{MP_L}{MP_K}=\\frac{K}{L}. \\]
+           Cost minimization sets \\( MRTS=\\dfrac{w}{r} \\):
+           \\[ \\frac{K}{L}=\\frac{${w}}{${r}}\\;\\Rightarrow\\;K=\\frac{${w}}{${r}}L. \\]</p>
+        <p><strong>Step 2 — impose the output requirement.</strong> Substitute into \\( \\sqrt{KL}=${Q} \\):
+           \\[ \\sqrt{\\frac{${w}}{${r}}L\\cdot L}=${Q}
+              \\;\\Rightarrow\\;L\\sqrt{\\frac{${w}}{${r}}}=${Q}
+              \\;\\Rightarrow\\;L=\\mathbf{${L}}. \\]</p>
+        <p>Then \\( K=\\dfrac{${w}}{${r}}(${L})=\\mathbf{${K}} \\)
+           (check: \\( \\sqrt{${K}\\cdot${L}}=${Q} \\) \u2713).</p>
+        <p><strong>Step 3 — total cost.</strong>
+           \\( TC=wL+rK=${w}(${L})+${r}(${K})=${w*L}+${r*K}=\\mathbf{${TC}} \\).</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(L=\\)',  answer: L,  tol: 0.01 },
+          { label: '\\(K=\\)',  answer: K,  tol: 0.01 },
+          { label: '\\(TC=\\)', answer: TC, tol: 0.01 }
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  
+  /* ----- 6. Which input to use more of — NEW -------------------------- */
+  {
+    key: 'tangency',
+    name: 'Is the firm minimizing cost?',
+    eyebrow: 'Bang for the buck',
+    gen(){
+      // EDIT NUMBERS HERE — compare MP_L/w with MP_K/r.
+      const w = pick([10,20,25,40]), r = pick([10,20,25,50]);
+      let MPL, MPK, t = 0;
+      do {
+        MPL = randint(2, 40); MPK = randint(2, 40); t++;
+      } while (Math.abs(MPL/w - MPK/r) < 1e-9 && t < 60);
+      const labourBetter = MPL/w > MPK/r;
+      const answer = labourBetter
+        ? 'No — it should use more labor and less capital'
+        : 'No — it should use more capital and less labor';
+      const options = [
+        'No — it should use more labor and less capital',
+        'No — it should use more capital and less labor',
+        'Yes — it is already minimizing cost',
+        'There is not enough information to tell'
+      ];
+      const correct = options.indexOf(answer);
+      const promptHTML = `
+        <p>At its current input bundle a firm has \\( MP_L=${MPL} \\) and \\( MP_K=${MPK} \\), while
+           \\( w=\\$${w} \\) and \\( r=\\$${r} \\).</p>
+        <p>Is the firm minimizing the cost of its current output?</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Compare the extra output per dollar spent on each input:
+           \\[ \\frac{MP_L}{w}=\\frac{${MPL}}{${w}}=${round(MPL/w,4)}
+              \\qquad\\text{versus}\\qquad
+              \\frac{MP_K}{r}=\\frac{${MPK}}{${r}}=${round(MPK/r,4)}. \\]</p>
+        <p>Cost minimization requires these to be equal (equivalently \\( MRTS=w/r \\)). Here a dollar spent on
+           <strong>${labourBetter ? 'labor' : 'capital'}</strong> buys more output, so the firm should shift
+           spending toward ${labourBetter ? 'labor and away from capital' : 'capital and away from labor'}.</p>
+        <p>As it does so, diminishing marginal returns push \\( MP_{${labourBetter ? 'L' : 'K'}} \\) down and
+           \\( MP_{${labourBetter ? 'K' : 'L'}} \\) up, until the two ratios are equal and no further
+           reshuffling can lower cost.</p>`;
+      return { promptHTML, mc: { options, correct }, solutionHTML };
+    }
+  }
+
+];
+
+/* ---- Startup ----
+   Primary path: MathJax's pageReady hook calls boot() once math is ready.
+   Fallback: if MathJax can't load (offline), still show questions after 3s. */
+let booted = false;
+function boot(){ if (booted) return; booted = true; buildTopics(); newProblem(); }
+setTimeout(() => { if (!booted) boot(); }, 3000);
+</script>
+</body>
+</html>

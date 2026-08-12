@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  ECO 3101 — Interactive practice page.  Self-contained: one HTML file.
+  No installation, no server. Double-click to open; drop into a GitHub repo
+  to publish for students.
+
+  HOW IT'S ORGANIZED (for editing later):
+  - All the math/questions live in the QUESTIONS array near the bottom of the
+    <script>. Each entry is one "problem type." To change the random ranges,
+    edit the numbers inside its gen() function — look for "EDIT NUMBERS HERE".
+  - To add a new problem type, copy one block and adjust it.
+  - The look (colors/fonts) is in the <style> block; you can ignore it.
+  ============================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lecture 10 Exercises — Intermediate Microeconomics</title>
+
+<!-- Fonts: IBM Plex family (academic/technical feel) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- MathJax: renders the LaTeX math. Loads from a CDN; needs internet.
+     We boot the app from MathJax's pageReady hook (see config below). -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(', '\\)'], ['$', '$']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+    svg: { fontCache: 'global' },
+    startup: {
+      typeset: false,
+      pageReady: () => MathJax.startup.defaultPageReady().then(() => boot())
+    }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+
+<style>
+  :root{
+    --paper:#eef1f5;        /* page background (cool soft white) */
+    --grid:#e0e5ec;         /* faint graph-paper lines */
+    --card:#ffffff;
+    --ink:#17263a;          /* primary text: deep slate-navy */
+    --muted:#5d6b7c;        /* secondary text */
+    --line:#dde3ea;         /* hairlines / borders */
+    --accent:#2b5c8a;       /* scholarly blue */
+    --accent-d:#1f456a;
+    --success:#2f7a52;
+    --success-bg:#eaf4ee;
+    --error:#b0432e;
+    --error-bg:#f7ece9;
+    --shadow:0 1px 2px rgba(23,38,58,.05), 0 12px 30px rgba(23,38,58,.07);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    color:var(--ink);
+    background-color:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:26px 26px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{ max-width:740px; margin:0 auto; padding:40px 20px 80px; }
+
+  /* ---- Header ---- */
+  .kicker{
+    font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.13em;
+    color:var(--accent); margin:0 0 10px;
+  }
+  header{ display:flex; align-items:center; gap:14px; margin-bottom:6px; }
+  .mark{ flex:0 0 auto; }
+  .mark svg{ display:block; }
+  h1{
+    font-family:'IBM Plex Serif', Georgia, serif;
+    font-weight:600; font-size:1.7rem; margin:0; letter-spacing:.01em;
+  }
+  .sub{ color:var(--muted); margin:.4em 0 26px; font-size:1rem; }
+
+  /* ---- Topic selector ---- */
+  .topics{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+  .topic{
+    font:500 .85rem/1 'IBM Plex Sans', sans-serif;
+    color:var(--muted); background:var(--card);
+    border:1px solid var(--line); border-radius:999px;
+    padding:8px 15px; cursor:pointer; transition:all .15s ease;
+  }
+  .topic:hover{ border-color:var(--accent); color:var(--accent); }
+  .topic.active{
+    background:var(--accent); border-color:var(--accent);
+    color:#fff; box-shadow:0 4px 12px rgba(43,92,138,.22);
+  }
+
+  /* ---- Card ---- */
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:26px 26px 22px; box-shadow:var(--shadow);
+  }
+  .eyebrow{
+    font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.1em; color:var(--accent);
+    margin-bottom:12px; display:flex; align-items:center; gap:8px;
+  }
+  .prompt{ font-size:1.05rem; }
+  .prompt p{ margin:.5em 0; }
+  .prompt .hint{
+    color:var(--muted); font-size:.92rem;
+    border-left:3px solid var(--line); padding-left:12px; margin-top:14px;
+  }
+
+  /* ---- Answer fields ---- */
+  .answers{ margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+  .field{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .field label{ font-size:.95rem; color:var(--ink); min-width:0; }
+  .field .inputwrap{ display:inline-flex; align-items:center; gap:6px; }
+  .field .prefix{ color:var(--muted); font-family:'IBM Plex Mono', monospace; }
+  .field input{
+    width:130px; font:500 1rem 'IBM Plex Mono', monospace;
+    color:var(--ink); background:var(--paper);
+    border:1.5px solid var(--line); border-radius:9px; padding:9px 11px;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .field input:focus{ outline:none; border-color:var(--accent); background:#fff; }
+  .field .unit{ color:var(--muted); font-size:.9rem; }
+  .field.ok input{ border-color:var(--success); background:var(--success-bg); }
+  .field.no input{ border-color:var(--error); background:var(--error-bg); }
+  .field .tag{
+    font:600 .68rem/1 'IBM Plex Mono', monospace; text-transform:uppercase;
+    letter-spacing:.06em; padding:3px 7px; border-radius:6px; opacity:0;
+  }
+  .field.ok .tag{ opacity:1; color:var(--success); background:var(--success-bg); }
+  .field.no .tag{ opacity:1; color:var(--error); background:var(--error-bg); }
+
+  /* ---- Multiple choice ---- */
+  .choices{ margin-top:20px; display:flex; flex-direction:column; gap:10px; }
+  .choice{
+    text-align:left; font:500 1rem 'IBM Plex Sans', sans-serif; color:var(--ink);
+    background:var(--paper); border:1.5px solid var(--line); border-radius:11px;
+    padding:13px 16px; cursor:pointer; transition:all .13s ease;
+    display:flex; align-items:center; gap:12px;
+  }
+  .choice:hover{ border-color:var(--accent); }
+  .choice .bullet{
+    flex:0 0 auto; width:22px; height:22px; border-radius:50%;
+    border:1.5px solid var(--line); display:inline-flex; align-items:center;
+    justify-content:center; font:600 .8rem 'IBM Plex Mono', monospace; color:var(--muted);
+  }
+  .choice.sel{ border-color:var(--accent); background:#fff; box-shadow:0 3px 10px rgba(43,92,138,.14); }
+  .choice.sel .bullet{ border-color:var(--accent); color:var(--accent); }
+  .choice.ok{ border-color:var(--success); background:var(--success-bg); }
+  .choice.ok .bullet{ border-color:var(--success); color:var(--success); background:#fff; }
+  .choice.no{ border-color:var(--error); background:var(--error-bg); }
+  .choice.no .bullet{ border-color:var(--error); color:var(--error); background:#fff; }
+
+  /* ---- Multi-select (checkbox) ---- */
+  .choice .box{
+    flex:0 0 auto; width:21px; height:21px; border-radius:6px;
+    border:1.5px solid var(--line); display:inline-flex; align-items:center;
+    justify-content:center; background:#fff;
+  }
+  .choice .box svg{ width:13px; height:13px; opacity:0; }
+  .choice.sel .box{ border-color:var(--accent); background:var(--accent); }
+  .choice.sel .box svg{ opacity:1; }
+  .choice.ok .box{ border-color:var(--success); background:var(--success); }
+  .choice.ok .box svg{ opacity:1; }
+  .choice.no .box{ border-color:var(--error); background:var(--error); }
+  .choice.no .box svg{ opacity:1; }
+
+  /* ---- Matching ---- */
+  .matchrows{ margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+  .matchrow{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .matchrow .ml{ flex:1 1 250px; font-size:.98rem; }
+  .matchrow select{
+    font:500 .95rem 'IBM Plex Sans',sans-serif; color:var(--ink); background:var(--paper);
+    border:1.5px solid var(--line); border-radius:9px; padding:9px 11px; min-width:190px; cursor:pointer;
+  }
+  .matchrow select:focus{ outline:none; border-color:var(--accent); background:#fff; }
+  .matchrow.ok select{ border-color:var(--success); background:var(--success-bg); }
+  .matchrow.no select{ border-color:var(--error); background:var(--error-bg); }
+  .matchrow .tag{ font:600 .68rem/1 'IBM Plex Mono',monospace; text-transform:uppercase;
+    letter-spacing:.06em; padding:3px 7px; border-radius:6px; opacity:0; }
+  .matchrow.ok .tag{ opacity:1; color:var(--success); background:var(--success-bg); }
+  .matchrow.no .tag{ opacity:1; color:var(--error); background:var(--error-bg); }
+
+  /* ---- Diagram ---- */
+  .diagram{ margin:18px 0 6px; text-align:center; }
+  .diagram svg{ max-width:100%; height:auto; background:#fff;
+    border:1px solid var(--line); border-radius:10px; }
+  .diagram .cap{ color:var(--muted); font-size:.85rem; margin-top:6px; }
+
+  /* ---- Data table (cost / schedule tables in prompts) ---- */
+  .costtable{
+    border-collapse:collapse; margin:16px auto; background:#fff;
+    font:500 .95rem 'IBM Plex Mono',monospace; min-width:280px;
+  }
+  .costtable th, .costtable td{
+    border:1px solid var(--line); padding:7px 16px; text-align:right;
+  }
+  .costtable th{
+    background:var(--paper); font:600 .8rem 'IBM Plex Sans',sans-serif;
+    text-transform:uppercase; letter-spacing:.05em; color:var(--muted);
+  }
+
+  /* ---- Actions ---- */
+  .actions{ display:flex; align-items:center; gap:10px; margin-top:22px; flex-wrap:wrap; }
+  .btn{
+    font:600 .92rem 'IBM Plex Sans', sans-serif; cursor:pointer;
+    border-radius:10px; padding:11px 18px; border:1.5px solid transparent;
+    transition:all .15s ease;
+  }
+  .btn-primary{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .btn-primary:hover{ background:var(--accent-d); border-color:var(--accent-d); }
+  .btn-ghost{ background:#fff; color:var(--accent); border-color:var(--line); }
+  .btn-ghost:hover{ border-color:var(--accent); }
+  .btn-text{
+    background:none; border:none; cursor:pointer; color:var(--muted);
+    font:500 .9rem 'IBM Plex Sans', sans-serif; text-decoration:underline;
+    text-underline-offset:3px; padding:6px 4px;
+  }
+  .btn-text:hover{ color:var(--accent); }
+  .spacer{ flex:1 1 auto; }
+  .score{ font:500 .85rem 'IBM Plex Mono', monospace; color:var(--muted); }
+
+  /* ---- Feedback + solution ---- */
+  .feedback{ margin-top:16px; font-weight:500; font-size:.96rem; display:none; }
+  .feedback.show{ display:block; }
+  .feedback.good{ color:var(--success); }
+  .feedback.bad{ color:var(--error); }
+  .solution{
+    display:none; margin-top:14px; padding:16px 18px;
+    background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    font-size:.95rem;
+  }
+  .solution.show{ display:block; }
+  .solution h4{
+    margin:0 0 8px; font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.08em; color:var(--muted);
+  }
+  .solution p{ margin:.4em 0; }
+
+  footer{ margin-top:30px; color:var(--muted); font-size:.82rem; text-align:center; line-height:1.6; }
+  footer a{ color:var(--accent); text-decoration:none; }
+  footer a:hover{ text-decoration:underline; }
+
+  @media (max-width:520px){
+    .wrap{ padding:26px 14px 60px; }
+    .actions{ gap:8px; }
+    .spacer{ flex-basis:100%; height:0; }
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .card{ animation:rise .25s ease both; }
+    @keyframes rise{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">ECO 3101 · Perfect Competition</p>
+  <header>
+    <span class="mark" aria-hidden="true">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+        <path d="M5 29V5M5 29h24" stroke="#2b5c8a" stroke-width="2" stroke-linecap="round"/>
+        <path d="M6 24C12 24 13 9 28 8" stroke="#17263a" stroke-width="2" stroke-linecap="round" fill="none"/>
+      </svg>
+    </span>
+    <h1>Lecture 10 Exercises</h1>
+  </header>
+  <p class="sub">Intermediate Microeconomic Theory. Fresh numbers every time — work it out, type your answer, check yourself.</p>
+
+  <div class="topics" id="topics" role="group" aria-label="Choose a problem type"></div>
+
+  <div class="card" id="card">
+    <div class="eyebrow"><span id="eyebrow">—</span></div>
+    <div class="prompt" id="prompt"></div>
+
+    <div class="answers" id="answers"></div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="check">Check answer</button>
+      <button class="btn btn-ghost" id="next">New question</button>
+      <button class="btn-text" id="steps">Show steps</button>
+      <span class="spacer"></span>
+      <span class="score" id="score">Solved 0</span>
+    </div>
+
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <div class="solution" id="solution"></div>
+  </div>
+
+  <footer>
+    Ungraded self-practice — reload for a fresh set.<br>
+    Built for <strong>ECO 3101</strong> at Florida State University.<br>
+    Found an error, or have a correction or suggestion? Email
+    <a href="mailto:ykim22@fsu.edu">ykim22@fsu.edu</a>.
+  </footer>
+</div>
+
+<script>
+/* ============================ small helpers ============================ */
+const $ = (id) => document.getElementById(id);
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const randint = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+function shuffle(a){ a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const round = (x, d=6) => { const f = 10**d; return Math.round((x + Number.EPSILON) * f) / f; };
+const comma = (x) => x.toLocaleString('en-US');
+function parseNum(s){
+  if (s == null) return null;
+  s = String(s).trim().replace(/,/g,'').replace(/\s+/g,'');
+  if (s === '') return null;
+  // allow simple fractions like -3/4
+  const frac = s.match(/^(-?\d*\.?\d+)\/(-?\d*\.?\d+)$/);
+  if (frac){ const d = parseFloat(frac[2]); if (d === 0) return null; return parseFloat(frac[1]) / d; }
+  const v = Number(s);
+  return Number.isFinite(v) ? v : null;
+}
+function normTxt(s){
+  return String(s == null ? '' : s).toLowerCase()
+    .replace(/\s+/g,'').replace(/[*·×]/g,'').replace(/\\cdot/g,'')
+    .replace(/\^/g,'').replace(/\{|\}/g,'');
+}
+function typeset(){ if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); }
+
+/* ============================ state / engine ============================ */
+let current = 0;      // index into QUESTIONS
+let problem = null;   // the generated instance
+let solvedCount = 0;
+let mcPick = null;    // selected choice index for MC questions
+let multiPick = new Set(); // selected indices for multi-select questions
+
+function buildTopics(){
+  const box = $('topics');
+  box.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const b = document.createElement('button');
+    b.className = 'topic' + (i === current ? ' active' : '');
+    b.textContent = q.name;
+    b.addEventListener('click', () => { current = i; syncTopics(); newProblem(); });
+    box.appendChild(b);
+  });
+}
+function syncTopics(){
+  [...$('topics').children].forEach((b, i) => b.classList.toggle('active', i === current));
+}
+
+function newProblem(){
+  problem = QUESTIONS[current].gen();
+  mcPick = null;
+  multiPick = new Set();
+  $('eyebrow').textContent = QUESTIONS[current].eyebrow || QUESTIONS[current].name;
+  $('prompt').innerHTML = problem.promptHTML;
+
+  const wrap = $('answers');
+  wrap.innerHTML = '';
+
+  if (problem.mc){
+    // multiple-choice rendering
+    const list = document.createElement('div');
+    list.className = 'choices';
+    problem.mc.options.forEach((opt, i) => {
+      const c = document.createElement('button');
+      c.className = 'choice';
+      c.dataset.idx = i;
+      c.innerHTML = `<span class="bullet">${String.fromCharCode(65+i)}</span><span>${opt}</span>`;
+      c.addEventListener('click', () => {
+        mcPick = i;
+        [...list.children].forEach(ch => ch.classList.remove('sel','ok','no'));
+        c.classList.add('sel');
+      });
+      list.appendChild(c);
+    });
+    wrap.appendChild(list);
+  } else if (problem.multi){
+    // multiple-answers (checkbox) rendering
+    const list = document.createElement('div');
+    list.className = 'choices';
+    problem.multi.options.forEach((opt, i) => {
+      const c = document.createElement('button');
+      c.className = 'choice';
+      c.dataset.idx = i;
+      c.innerHTML = `<span class="box"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.2 3.2L13 4.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>${opt}</span>`;
+      c.addEventListener('click', () => {
+        if (multiPick.has(i)) multiPick.delete(i); else multiPick.add(i);
+        c.classList.toggle('sel', multiPick.has(i));
+        c.classList.remove('ok','no');
+      });
+      list.appendChild(c);
+    });
+    wrap.appendChild(list);
+  } else if (problem.match){
+    // matching rendering (each row: statement + a <select> of labels)
+    const box = document.createElement('div');
+    box.className = 'matchrows';
+    const optionsHTML = ['<option value="">\u2014 choose \u2014</option>']
+      .concat(problem.match.options.map((o,j) => `<option value="${j}">${o}</option>`)).join('');
+    problem.match.rows.forEach((row, i) => {
+      const r = document.createElement('div');
+      r.className = 'matchrow';
+      r.dataset.idx = i;
+      r.innerHTML = `<span class="ml">${row.left}</span><select data-idx="${i}">${optionsHTML}</select><span class="tag"></span>`;
+      box.appendChild(r);
+    });
+    wrap.appendChild(box);
+  } else {
+    // input-field rendering (numeric or text parts)
+    problem.parts.forEach((part, idx) => {
+      const field = document.createElement('div');
+      field.className = 'field';
+      field.innerHTML = `
+        <label>${part.label}</label>
+        <span class="inputwrap">
+          ${part.prefix ? `<span class="prefix">${part.prefix}</span>` : ''}
+          <input type="text" inputmode="${part.type === 'text' ? 'text' : 'decimal'}"
+                 autocomplete="off" data-idx="${idx}" placeholder="${part.placeholder || '?'}">
+          ${part.unit ? `<span class="unit">${part.unit}</span>` : ''}
+        </span>
+        <span class="tag"></span>`;
+      wrap.appendChild(field);
+    });
+  }
+
+  $('feedback').className = 'feedback';
+  $('feedback').textContent = '';
+  $('solution').className = 'solution';
+  $('solution').innerHTML = problem.solutionHTML;
+
+  typeset();
+  const first = wrap.querySelector('input');
+  if (first) first.focus();
+}
+
+function checkAnswers(){
+  const fb = $('feedback');
+
+  if (problem.mc){
+    const list = $('answers').querySelector('.choices');
+    if (mcPick == null){
+      fb.className = 'feedback show bad';
+      fb.textContent = 'Select an option first.';
+      return;
+    }
+    const correct = problem.mc.correct;
+    [...list.children].forEach((ch, i) => {
+      ch.classList.remove('sel','ok','no');
+      if (i === correct) ch.classList.add('ok');
+      else if (i === mcPick) ch.classList.add('no');
+    });
+    fb.className = 'feedback show';
+    if (mcPick === correct){
+      fb.classList.add('good'); fb.textContent = '\u2713 Correct.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite — the highlighted option is correct. See the steps below.';
+    }
+    return;
+  }
+
+  if (problem.multi){
+    const list = $('answers').querySelector('.choices');
+    if (multiPick.size === 0){
+      fb.className = 'feedback show bad';
+      fb.textContent = 'Select at least one option (or as many as apply).';
+      return;
+    }
+    const correct = new Set(problem.multi.correct);
+    const ok = correct.size === multiPick.size && [...correct].every(i => multiPick.has(i));
+    [...list.children].forEach((ch, i) => {
+      ch.classList.remove('sel','ok','no');
+      if (correct.has(i)) ch.classList.add('ok');
+      else if (multiPick.has(i)) ch.classList.add('no');
+    });
+    fb.className = 'feedback show';
+    if (ok){
+      fb.classList.add('good'); fb.textContent = '\u2713 Correct.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite \u2014 the correct set is highlighted green. See the steps below.';
+    }
+    return;
+  }
+
+  if (problem.match){
+    const rows = [...$('answers').querySelectorAll('.matchrow')];
+    let all = true, blank = false;
+    rows.forEach(r => {
+      const i = +r.dataset.idx;
+      const sel = r.querySelector('select');
+      const tag = r.querySelector('.tag');
+      r.classList.remove('ok','no');
+      if (sel.value === ''){ blank = true; all = false; if(tag) tag.textContent=''; return; }
+      if (+sel.value === problem.match.rows[i].correct){ r.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { r.classList.add('no'); if(tag) tag.textContent='try again'; all = false; }
+    });
+    fb.className = 'feedback show';
+    if (blank){ fb.classList.add('bad'); fb.textContent = 'Match every row before checking.'; }
+    else if (all){
+      fb.classList.add('good'); fb.textContent = '\u2713 All matched correctly.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite \u2014 the green rows are right; fix the others or peek at the steps.';
+    }
+    return;
+  }
+
+  const inputs = [...$('answers').querySelectorAll('input')];
+  let allCorrect = true, anyBlank = false;
+
+  inputs.forEach(inp => {
+    const idx = +inp.dataset.idx;
+    const part = problem.parts[idx];
+    const field = inp.closest('.field');
+    const tag = field.querySelector('.tag');
+    field.classList.remove('ok', 'no');
+
+    if (part.type === 'text'){
+      const raw = inp.value.trim();
+      if (raw === ''){ anyBlank = true; allCorrect = false; if(tag) tag.textContent=''; return; }
+      const got = normTxt(raw);
+      const ok = part.accept.map(normTxt).includes(got);
+      if (ok){ field.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { field.classList.add('no'); if(tag) tag.textContent='try again'; allCorrect = false; }
+    } else {
+      const val = parseNum(inp.value);
+      if (val === null){ anyBlank = true; allCorrect = false; if(tag) tag.textContent=''; return; }
+      if (Math.abs(val - part.answer) <= (part.tol ?? 0.01)){ field.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { field.classList.add('no'); if(tag) tag.textContent='try again'; allCorrect = false; }
+    }
+  });
+
+  fb.className = 'feedback show';
+  if (anyBlank){
+    fb.classList.add('bad');
+    fb.textContent = 'Enter an answer in each blank.';
+  } else if (allCorrect){
+    fb.classList.add('good');
+    fb.textContent = inputs.length > 1 ? '\u2713 All correct — nice work.' : '\u2713 Correct.';
+    solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+  } else {
+    fb.classList.add('bad');
+    fb.textContent = 'Not quite — fix the highlighted blank and try again, or peek at the steps.';
+  }
+}
+
+function showSteps(){ $('solution').classList.add('show'); typeset(); }
+
+$('check').addEventListener('click', checkAnswers);
+$('next').addEventListener('click', newProblem);
+$('steps').addEventListener('click', showSteps);
+$('answers').addEventListener('keydown', (e) => { if (e.key === 'Enter') checkAnswers(); });
+
+/* =========================================================================
+   QUESTIONS — each entry is one problem type. Edit numbers inside gen().
+   ========================================================================= */
+/* =========================================================================
+   Lecture 10 (merged 10a + 10b) — Perfect Competition:
+   profit maximization (P = MC), profit/loss, and the shutdown rule.
+     Table firms:  VC = a q^2  →  AVC = a q,  MC = 2 a q,  ATC = F/q + a q
+     Quadratic firms: VC = d q^2 - b q  →  MC = 2 d q - b
+   All draws back-solve so quantities and costs are whole numbers.
+   ========================================================================= */
+
+/* Build a competitive-firm cost table: rows chosen so F/q is an integer. */
+function costTable(){
+  // EDIT NUMBERS HERE
+  const a = pick([1,2,3,4,5]);
+  const F = pick([40,80,120,160]);
+  const rows = [1,2,4,8];
+  return { a, F, rows };
+}
+function tableRow(t, q){
+  return { q, ATC: round(t.F/q + t.a*q, 2), AVC: t.a*q, MC: 2*t.a*q };
+}
+function tableHTML(t, highlight){
+  let body = '';
+  for (const q of t.rows){
+    const r = tableRow(t, q);
+    const atc = Number.isInteger(r.ATC) ? r.ATC : r.ATC.toFixed(2);
+    body += `<tr><td>${q}</td><td>${atc}</td><td>${r.AVC}</td><td>${r.MC}</td></tr>`;
+  }
+  return `<table class="costtable">
+    <tr><th>\\(q\\)</th><th>ATC</th><th>AVC</th><th>MC</th></tr>${body}</table>`;
+}
+
+const QUESTIONS = [
+
+  /* ----- 1. Output & costs from a cost table (original 10a) ----------- */
+  {
+    key: 'tableopt',
+    name: 'Reading the cost table',
+    eyebrow: 'Profit maximization',
+    gen(){
+      const t = costTable();
+      const q = pick(t.rows.slice(1));            // not the first row
+      const r = tableRow(t, q);
+      const P = r.MC;                              // price set so P = MC at q
+      const R = P*q, VC = t.a*q*q, TC = t.F + VC;
+      const promptHTML = `
+        <p>A competitive firm has the cost structure in the table below.</p>
+        ${tableHTML(t)}
+        <p>When the market price is \\(${P}\\), find the profit-maximizing output and the resulting
+           revenue, variable cost, and total cost.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>A competitive firm is a price taker, so \\( MR=P=${P} \\). Profit is maximized where
+           \\( P=MC \\). Scanning the MC column, \\( MC=${P} \\) at \\( q=\\mathbf{${q}} \\).</p>
+        <p>Revenue: \\( R=P\\times q=${P}\\times${q}=\\mathbf{${R}} \\).</p>
+        <p>Variable cost: \\( VC=AVC\\times q=${r.AVC}\\times${q}=\\mathbf{${VC}} \\).</p>
+        <p>Total cost: \\( TC=ATC\\times q=${Number.isInteger(r.ATC)?r.ATC:r.ATC.toFixed(2)}\\times${q}=\\mathbf{${TC}} \\).
+           (Equivalently \\( TC=FC+VC=${t.F}+${VC}=${TC} \\).)</p>
+        <p>Profit \\(=R-TC=${R}-${TC}=${R-TC}\\).</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(q=\\)',  answer: q,  tol: 0.01 },
+          { label: 'Revenue \\(=\\)', answer: R,  tol: 0.01 },
+          { label: '\\(VC=\\)', answer: VC, tol: 0.01 },
+          { label: '\\(TC=\\)', answer: TC, tol: 0.01 }
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 2. Profit / keep producing / why (original 10a follow-up) ---- */
+  {
+    key: 'tabledecide',
+    name: 'Profit or loss?',
+    eyebrow: 'Shutdown rule',
+    gen(){
+      const t = costTable();
+      const q = pick(t.rows.slice(1));
+      const r = tableRow(t, q);
+      const P = r.MC, R = P*q, VC = t.a*q*q, TC = t.F + VC, profit = R - TC;
+      const loss = profit < 0;
+      // With VC = a q^2, MC = 2·AVC > AVC always, so the firm always covers variable cost.
+      const options = loss
+        ? [
+            'Profit is negative, but the firm keeps producing because revenue exceeds variable cost',
+            'Profit is negative, so the firm shuts down immediately',
+            'Profit is positive, and the firm keeps producing',
+            'Profit is negative, so the firm exits in the short run'
+          ]
+        : [
+            'Profit is positive, and the firm keeps producing',
+            'Profit is negative, but the firm keeps producing because revenue exceeds variable cost',
+            'Profit is zero, so the firm is indifferent about producing',
+            'Profit is positive, but the firm should shut down anyway'
+          ];
+      const correct = 0;
+      const shuffled = shuffle(options);
+      const promptHTML = `
+        <p>The same competitive firm faces the cost structure below.</p>
+        ${tableHTML(t)}
+        <p>When the market price is \\(${P}\\), what happens to the firm?</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Setting \\(P=MC\\) gives \\(q=${q}\\). Then
+           \\( R=${P}\\times${q}=${R} \\), \\( VC=${r.AVC}\\times${q}=${VC} \\), and
+           \\( TC=${t.F}+${VC}=${TC} \\), so profit \\(=${R}-${TC}=${profit}\\).</p>
+        <p>The shutdown decision compares price with <em>average variable</em> cost, not with ATC.
+           Here \\( P=${P} \\) and \\( AVC=${r.AVC} \\), so \\( P>AVC \\): revenue \\(${R}\\) more than covers the
+           variable cost \\(${VC}\\), and producing contributes \\(${R-VC}\\) toward the fixed cost of \\(${t.F}\\).</p>
+        <p>${loss
+             ? `Since \\(P\\lt ATC=${Number.isInteger(r.ATC)?r.ATC:r.ATC.toFixed(2)}\\) the firm makes a loss, but shutting down would mean
+                losing the entire fixed cost \\(${t.F}\\) instead of only \\(${-profit}\\). So it <strong>keeps producing</strong>.`
+             : `Since \\(P>ATC=${Number.isInteger(r.ATC)?r.ATC:r.ATC.toFixed(2)}\\) the firm earns a <strong>positive profit</strong> and clearly keeps producing.`}</p>`;
+      return { promptHTML, mc: { options: shuffled, correct: shuffled.indexOf(options[correct]) }, solutionHTML };
+    }
+  },
+
+  /* ----- 3. Quadratic-cost firm, full walk-through (original 10b) ----- */
+  {
+    key: 'quadfirm',
+    name: 'MC, MR and profit',
+    eyebrow: 'P = MC',
+    gen(){
+      // EDIT NUMBERS HERE — VC = d q^2 - b q, so MC = 2d q - b (slope e = 2d).
+      const e = pick([0.4, 0.5, 1, 2]);            // MC slope
+      const b = pick([2, 5, 10]);
+      const F = pick([100, 150, 200, 250]);
+      const qs = pick([10, 20, 30, 40, 50]);        // chosen optimum
+      const P = round(e*qs - b, 4);                 // price making q* optimal
+      const d = e/2;
+      const R = round(P*qs, 4);
+      const VC = round(d*qs*qs - b*qs, 4);
+      const TC = round(F + VC, 4);
+      const profit = round(R - TC, 4);
+      const dTex = String(d), eTex = String(e);
+      const promptHTML = `
+        <p>A firm in a competitive industry has fixed cost \\( FC=${F} \\) and variable cost
+           \\( VC(q)=${dTex}q^{2}-${b}q \\) in the short run.</p>
+        <p>The firm faces a price of \\(${P}\\). Work out the following:</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p><strong>Marginal cost</strong> is the derivative of variable cost:
+           \\[ MC(q)=\\frac{dVC}{dq}=${eTex}q-${b}. \\]</p>
+        <p><strong>Marginal revenue.</strong> The firm is a price taker, so each extra unit adds exactly the
+           price: \\( MR=P=${P} \\).</p>
+        <p><strong>Profit-maximizing output</strong> sets \\(MC=MR\\):
+           \\[ ${eTex}q-${b}=${P}\\;\\Rightarrow\\;${eTex}q=${round(P+b,4)}
+              \\;\\Rightarrow\\; q^*=\\frac{${round(P+b,4)}}{${eTex}}=${qs}. \\]</p>
+        <p><strong>Revenue</strong>: \\( R=P\\,q^*=${P}\\times${qs}=${R} \\).</p>
+        <p><strong>Variable cost</strong>: \\( VC=${dTex}(${qs})^{2}-${b}(${qs})=${round(d*qs*qs,4)}-${b*qs}=${VC} \\).</p>
+        <p><strong>Total cost</strong>: \\( TC=FC+VC=${F}+${VC}=${TC} \\).</p>
+        <p>Profit \\(=R-TC=${R}-${TC}=${profit}\\). ${profit<0
+            ? `This is a loss, but revenue \\(${R}\\) exceeds variable cost \\(${VC}\\), so the firm
+               <strong>keeps producing</strong> in the short run rather than losing the whole fixed cost.`
+            : `The firm earns a positive profit and keeps producing.`}</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(MC(q)=\\square\\, q-' + b + '\\), \\(\\square=\\)', answer: e, tol: 0.001 },
+          { label: '\\(MR=\\)', answer: P, tol: 0.01 },
+          { label: '\\(q^*=\\)', answer: qs, tol: 0.01 },
+          { label: 'Revenue \\(=\\)', answer: R, tol: 0.01 },
+          { label: '\\(VC=\\)', answer: VC, tol: 0.01 },
+          { label: '\\(TC=\\)', answer: TC, tol: 0.01 }
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 4. The shutdown rule with given costs (MC) ------------------- */
+  {
+    key: 'shutdown',
+    name: 'Shut down or produce?',
+    eyebrow: 'P vs AVC and ATC',
+    gen(){
+      // EDIT NUMBERS HERE — three cases: profit, loss-but-produce, shut down.
+      const AVC = randint(4, 20);
+      const gap1 = randint(2, 8), gap2 = randint(2, 8);
+      const ATC = AVC + gap1 + gap2;
+      const cse = pick(['profit','loss','shut']);
+      const P = cse === 'profit' ? ATC + randint(1,6)
+              : cse === 'loss'   ? AVC + gap1
+              : AVC - randint(1, Math.max(1, AVC-1));
+      const answer = cse === 'profit'
+          ? 'Produce — the firm earns a positive profit'
+          : cse === 'loss'
+          ? 'Produce — the firm loses money but still covers its variable cost'
+          : 'Shut down — the price does not cover average variable cost';
+      const options = [
+        'Produce — the firm earns a positive profit',
+        'Produce — the firm loses money but still covers its variable cost',
+        'Shut down — the price does not cover average variable cost',
+        'Shut down — any loss means the firm should stop producing'
+      ];
+      const correct = options.indexOf(answer);
+      const promptHTML = `
+        <p>At its profit-maximizing output, a competitive firm faces price \\( P=${P} \\), with
+           \\( AVC=${AVC} \\) and \\( ATC=${ATC} \\) at that output.</p>
+        <p>What should the firm do in the short run?</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>The short-run rule compares price with <strong>average variable cost</strong>: produce if
+           \\(P\\ge AVC\\), shut down if \\(P\\lt AVC\\). Fixed cost is sunk in the short run, so it doesn't
+           affect the decision.</p>
+        <p>Here \\( P=${P} \\), \\( AVC=${AVC} \\), \\( ATC=${ATC} \\).</p>
+        <p>${cse === 'profit'
+            ? `\\(P>ATC\\), so revenue covers <em>all</em> costs — the firm produces at a <strong>profit</strong>.`
+            : cse === 'loss'
+            ? `\\(AVC\\lt P\\lt ATC\\): the firm can't cover total cost, so it makes a loss — but each unit sold still
+               contributes \\(${P-AVC}\\) toward the fixed cost. Shutting down would forfeit that, so it
+               <strong>keeps producing</strong>.`
+            : `\\(P\\lt AVC\\): each unit produced loses money even before fixed costs. The firm
+               <strong>shuts down</strong>, limiting its loss to the fixed cost.`}</p>`;
+      return { promptHTML, mc: { options, correct }, solutionHTML };
+    }
+  },
+
+  /* ----- 5. Shutdown price & break-even price — NEW -------------------
+     TC = F + c q + d q^2 ⇒ AVC = c + d q (min at q→0 ⇒ shutdown price = c)
+     ATC = F/q + c + d q minimized at q = sqrt(F/d) ⇒ break-even = c + 2*sqrt(F d). */
+  {
+    key: 'thresholds',
+    name: 'Shutdown & break-even price',
+    eyebrow: 'Minimum AVC and ATC',
+    gen(){
+      // EDIT NUMBERS HERE — F = d k^2 makes the ATC-minimizing q equal k.
+      const d = pick([1,2,3,4]);
+      const c = pick([2,3,4,5,6,10]);
+      const k = randint(2,10);
+      const F = d*k*k;
+      const shutP = c, beP = c + 2*d*k;
+      const promptHTML = `
+        <p>A competitive firm has total cost \\( TC(q)=${F}+${c}q+${d===1?'':d}q^{2} \\).</p>
+        <p>Find the short-run <strong>shutdown price</strong> (the minimum of AVC) and the
+           <strong>break-even price</strong> (the minimum of ATC).</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Split the cost: \\( FC=${F} \\) and \\( VC=${c}q+${d===1?'':d}q^{2} \\).</p>
+        <p><strong>Shutdown price.</strong> \\( AVC=\\dfrac{VC}{q}=${c}+${d===1?'':d}q \\), which is smallest as
+           \\(q\\) approaches 0, giving \\( \\min AVC=\\mathbf{${shutP}} \\). Below this price no output covers its
+           own variable cost, so the firm shuts down.</p>
+        <p><strong>Break-even price.</strong> \\( ATC=\\dfrac{${F}}{q}+${c}+${d===1?'':d}q \\).
+           ATC is at its minimum where \\( MC=ATC \\), with \\( MC=${c}+${2*d}q \\):
+           \\[ ${c}+${2*d}q=\\frac{${F}}{q}+${c}+${d===1?'':d}q
+              \\;\\Rightarrow\\; ${d===1?'':d}q=\\frac{${F}}{q}
+              \\;\\Rightarrow\\; q^{2}=${k*k}\\;\\Rightarrow\\; q=${k}. \\]</p>
+        <p>Then \\( \\min ATC=\\dfrac{${F}}{${k}}+${c}+${d===1?'':d}(${k})=${d*k}+${c}+${d*k}=\\mathbf{${beP}} \\).
+           At any price above this the firm earns a positive profit; between \\(${shutP}\\) and \\(${beP}\\) it
+           produces at a loss but stays open.</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: 'Shutdown price \\(=\\)', answer: shutP, tol: 0.01 },
+          { label: 'Break-even price \\(=\\)', answer: beP, tol: 0.01 }
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 6. Profit at the optimum — NEW ------------------------------
+     TC = F + c q + d q^2, MC = c + 2 d q. P = MC ⇒ q* = (P-c)/(2d). */
+  {
+    key: 'profitcalc',
+    name: 'Profit at the optimum',
+    eyebrow: 'P = MC then \\(\\pi=R-TC\\)',
+    gen(){
+      // EDIT NUMBERS HERE — P chosen from an integer q* so everything is clean.
+      const d = pick([1,2,3,5]);
+      const c = pick([2,4,5,6]);
+      const F = pick([20,30,40,50,60,100]);
+      const qs = randint(2,10);
+      const P = c + 2*d*qs;
+      const R = P*qs, TC = F + c*qs + d*qs*qs, profit = R - TC;
+      const promptHTML = `
+        <p>A competitive firm has total cost \\( TC(q)=${F}+${c}q+${d===1?'':d}q^{2} \\) and faces a market
+           price of \\( P=${P} \\).</p>
+        <p>Find the profit-maximizing output and the firm's profit.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p><strong>Step 1 — marginal cost.</strong>
+           \\( MC=\\dfrac{dTC}{dq}=${c}+${2*d}q \\).</p>
+        <p><strong>Step 2 — set \\(P=MC\\)</strong> (for a price taker \\(MR=P\\)):
+           \\[ ${c}+${2*d}q=${P}\\;\\Rightarrow\\;${2*d}q=${P-c}\\;\\Rightarrow\\;q^*=\\mathbf{${qs}}. \\]</p>
+        <p><strong>Step 3 — revenue and cost.</strong>
+           \\( R=${P}\\times${qs}=${R} \\) and
+           \\( TC=${F}+${c}(${qs})+${d===1?'':d}(${qs})^{2}=${F}+${c*qs}+${d*qs*qs}=${TC} \\).</p>
+        <p><strong>Step 4 — profit.</strong> \\( \\pi=R-TC=${R}-${TC}=\\mathbf{${profit}} \\)${
+           profit < 0 ? ' (a loss)' : ''}.</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(q^*=\\)', answer: qs, tol: 0.01 },
+          { label: 'Profit \\(=\\)', answer: profit, tol: 0.01 }
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 7. Adjusting output when MR ≠ MC — NEW ----------------------- */
+  {
+    key: 'adjust',
+    name: 'Which way to adjust?',
+    eyebrow: 'Why \\(P=MC\\)',
+    gen(){
+      const P = randint(10, 40);
+      const above = Math.random() < 0.5;           // is MC above the price?
+      const MC = above ? P + randint(2, 10) : P - randint(2, 8);
+      const answer = above ? 'Decrease output' : 'Increase output';
+      const options = ['Increase output', 'Decrease output', 'Keep output unchanged — it is already optimal', 'Shut down'];
+      const correct = options.indexOf(answer);
+      const promptHTML = `
+        <p>A competitive firm currently produces a quantity at which \\( MC=${MC} \\), while the market price
+           is \\( P=${P} \\). The firm is covering its variable cost.</p>
+        <p>To raise profit, the firm should:</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>For a price taker \\( MR=P=${P} \\). Each extra unit adds \\(MR\\) to revenue and \\(MC\\) to cost.</p>
+        <p>${above
+            ? `Here \\( MC=${MC}>MR=${P} \\): the last unit costs more than it brings in, so cutting output by one
+               unit saves \\(${MC-P}\\). The firm should <strong>decrease output</strong> — moving down its MC curve
+               until \\(MC=P\\).`
+            : `Here \\( MC=${MC}\\lt MR=${P} \\): the next unit brings in more than it costs, adding \\(${P-MC}\\) to profit.
+               The firm should <strong>increase output</strong> — moving up its MC curve until \\(MC=P\\).`}</p>
+        <p>Profit stops rising exactly where \\( P=MC \\), which is why that condition defines the optimum.</p>`;
+      return { promptHTML, mc: { options, correct }, solutionHTML };
+    }
+  }
+
+];
+
+/* ---- Startup ----
+   Primary path: MathJax's pageReady hook calls boot() once math is ready.
+   Fallback: if MathJax can't load (offline), still show questions after 3s. */
+let booted = false;
+function boot(){ if (booted) return; booted = true; buildTopics(); newProblem(); }
+setTimeout(() => { if (!booted) boot(); }, 3000);
+</script>
+</body>
+</html>

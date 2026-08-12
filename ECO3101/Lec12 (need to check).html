@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  ECO 3101 — Interactive practice page.  Self-contained: one HTML file.
+  No installation, no server. Double-click to open; drop into a GitHub repo
+  to publish for students.
+
+  HOW IT'S ORGANIZED (for editing later):
+  - All the math/questions live in the QUESTIONS array near the bottom of the
+    <script>. Each entry is one "problem type." To change the random ranges,
+    edit the numbers inside its gen() function — look for "EDIT NUMBERS HERE".
+  - To add a new problem type, copy one block and adjust it.
+  - The look (colors/fonts) is in the <style> block; you can ignore it.
+  ============================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lecture 12 Exercises — Intermediate Microeconomics</title>
+
+<!-- Fonts: IBM Plex family (academic/technical feel) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- MathJax: renders the LaTeX math. Loads from a CDN; needs internet.
+     We boot the app from MathJax's pageReady hook (see config below). -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(', '\\)'], ['$', '$']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+    svg: { fontCache: 'global' },
+    startup: {
+      typeset: false,
+      pageReady: () => MathJax.startup.defaultPageReady().then(() => boot())
+    }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+
+<style>
+  :root{
+    --paper:#eef1f5;        /* page background (cool soft white) */
+    --grid:#e0e5ec;         /* faint graph-paper lines */
+    --card:#ffffff;
+    --ink:#17263a;          /* primary text: deep slate-navy */
+    --muted:#5d6b7c;        /* secondary text */
+    --line:#dde3ea;         /* hairlines / borders */
+    --accent:#2b5c8a;       /* scholarly blue */
+    --accent-d:#1f456a;
+    --success:#2f7a52;
+    --success-bg:#eaf4ee;
+    --error:#b0432e;
+    --error-bg:#f7ece9;
+    --shadow:0 1px 2px rgba(23,38,58,.05), 0 12px 30px rgba(23,38,58,.07);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    color:var(--ink);
+    background-color:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:26px 26px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{ max-width:740px; margin:0 auto; padding:40px 20px 80px; }
+
+  /* ---- Header ---- */
+  .kicker{
+    font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.13em;
+    color:var(--accent); margin:0 0 10px;
+  }
+  header{ display:flex; align-items:center; gap:14px; margin-bottom:6px; }
+  .mark{ flex:0 0 auto; }
+  .mark svg{ display:block; }
+  h1{
+    font-family:'IBM Plex Serif', Georgia, serif;
+    font-weight:600; font-size:1.7rem; margin:0; letter-spacing:.01em;
+  }
+  .sub{ color:var(--muted); margin:.4em 0 26px; font-size:1rem; }
+
+  /* ---- Topic selector ---- */
+  .topics{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+  .topic{
+    font:500 .85rem/1 'IBM Plex Sans', sans-serif;
+    color:var(--muted); background:var(--card);
+    border:1px solid var(--line); border-radius:999px;
+    padding:8px 15px; cursor:pointer; transition:all .15s ease;
+  }
+  .topic:hover{ border-color:var(--accent); color:var(--accent); }
+  .topic.active{
+    background:var(--accent); border-color:var(--accent);
+    color:#fff; box-shadow:0 4px 12px rgba(43,92,138,.22);
+  }
+
+  /* ---- Card ---- */
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:26px 26px 22px; box-shadow:var(--shadow);
+  }
+  .eyebrow{
+    font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.1em; color:var(--accent);
+    margin-bottom:12px; display:flex; align-items:center; gap:8px;
+  }
+  .prompt{ font-size:1.05rem; }
+  .prompt p{ margin:.5em 0; }
+  .prompt .hint{
+    color:var(--muted); font-size:.92rem;
+    border-left:3px solid var(--line); padding-left:12px; margin-top:14px;
+  }
+
+  /* ---- Answer fields ---- */
+  .answers{ margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+  .field{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .field label{ font-size:.95rem; color:var(--ink); min-width:0; }
+  .field .inputwrap{ display:inline-flex; align-items:center; gap:6px; }
+  .field .prefix{ color:var(--muted); font-family:'IBM Plex Mono', monospace; }
+  .field input{
+    width:130px; font:500 1rem 'IBM Plex Mono', monospace;
+    color:var(--ink); background:var(--paper);
+    border:1.5px solid var(--line); border-radius:9px; padding:9px 11px;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .field input:focus{ outline:none; border-color:var(--accent); background:#fff; }
+  .field .unit{ color:var(--muted); font-size:.9rem; }
+  .field.ok input{ border-color:var(--success); background:var(--success-bg); }
+  .field.no input{ border-color:var(--error); background:var(--error-bg); }
+  .field .tag{
+    font:600 .68rem/1 'IBM Plex Mono', monospace; text-transform:uppercase;
+    letter-spacing:.06em; padding:3px 7px; border-radius:6px; opacity:0;
+  }
+  .field.ok .tag{ opacity:1; color:var(--success); background:var(--success-bg); }
+  .field.no .tag{ opacity:1; color:var(--error); background:var(--error-bg); }
+
+  /* ---- Multiple choice ---- */
+  .choices{ margin-top:20px; display:flex; flex-direction:column; gap:10px; }
+  .choice{
+    text-align:left; font:500 1rem 'IBM Plex Sans', sans-serif; color:var(--ink);
+    background:var(--paper); border:1.5px solid var(--line); border-radius:11px;
+    padding:13px 16px; cursor:pointer; transition:all .13s ease;
+    display:flex; align-items:center; gap:12px;
+  }
+  .choice:hover{ border-color:var(--accent); }
+  .choice .bullet{
+    flex:0 0 auto; width:22px; height:22px; border-radius:50%;
+    border:1.5px solid var(--line); display:inline-flex; align-items:center;
+    justify-content:center; font:600 .8rem 'IBM Plex Mono', monospace; color:var(--muted);
+  }
+  .choice.sel{ border-color:var(--accent); background:#fff; box-shadow:0 3px 10px rgba(43,92,138,.14); }
+  .choice.sel .bullet{ border-color:var(--accent); color:var(--accent); }
+  .choice.ok{ border-color:var(--success); background:var(--success-bg); }
+  .choice.ok .bullet{ border-color:var(--success); color:var(--success); background:#fff; }
+  .choice.no{ border-color:var(--error); background:var(--error-bg); }
+  .choice.no .bullet{ border-color:var(--error); color:var(--error); background:#fff; }
+
+  /* ---- Multi-select (checkbox) ---- */
+  .choice .box{
+    flex:0 0 auto; width:21px; height:21px; border-radius:6px;
+    border:1.5px solid var(--line); display:inline-flex; align-items:center;
+    justify-content:center; background:#fff;
+  }
+  .choice .box svg{ width:13px; height:13px; opacity:0; }
+  .choice.sel .box{ border-color:var(--accent); background:var(--accent); }
+  .choice.sel .box svg{ opacity:1; }
+  .choice.ok .box{ border-color:var(--success); background:var(--success); }
+  .choice.ok .box svg{ opacity:1; }
+  .choice.no .box{ border-color:var(--error); background:var(--error); }
+  .choice.no .box svg{ opacity:1; }
+
+  /* ---- Matching ---- */
+  .matchrows{ margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+  .matchrow{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .matchrow .ml{ flex:1 1 250px; font-size:.98rem; }
+  .matchrow select{
+    font:500 .95rem 'IBM Plex Sans',sans-serif; color:var(--ink); background:var(--paper);
+    border:1.5px solid var(--line); border-radius:9px; padding:9px 11px; min-width:190px; cursor:pointer;
+  }
+  .matchrow select:focus{ outline:none; border-color:var(--accent); background:#fff; }
+  .matchrow.ok select{ border-color:var(--success); background:var(--success-bg); }
+  .matchrow.no select{ border-color:var(--error); background:var(--error-bg); }
+  .matchrow .tag{ font:600 .68rem/1 'IBM Plex Mono',monospace; text-transform:uppercase;
+    letter-spacing:.06em; padding:3px 7px; border-radius:6px; opacity:0; }
+  .matchrow.ok .tag{ opacity:1; color:var(--success); background:var(--success-bg); }
+  .matchrow.no .tag{ opacity:1; color:var(--error); background:var(--error-bg); }
+
+  /* ---- Diagram ---- */
+  .diagram{ margin:18px 0 6px; text-align:center; }
+  .diagram svg{ max-width:100%; height:auto; background:#fff;
+    border:1px solid var(--line); border-radius:10px; }
+  .diagram .cap{ color:var(--muted); font-size:.85rem; margin-top:6px; }
+
+  /* ---- Data table (cost / schedule tables in prompts) ---- */
+  .costtable{
+    border-collapse:collapse; margin:16px auto; background:#fff;
+    font:500 .95rem 'IBM Plex Mono',monospace; min-width:280px;
+  }
+  .costtable th, .costtable td{
+    border:1px solid var(--line); padding:7px 16px; text-align:right;
+  }
+  .costtable th{
+    background:var(--paper); font:600 .8rem 'IBM Plex Sans',sans-serif;
+    text-transform:uppercase; letter-spacing:.05em; color:var(--muted);
+  }
+
+  /* ---- Actions ---- */
+  .actions{ display:flex; align-items:center; gap:10px; margin-top:22px; flex-wrap:wrap; }
+  .btn{
+    font:600 .92rem 'IBM Plex Sans', sans-serif; cursor:pointer;
+    border-radius:10px; padding:11px 18px; border:1.5px solid transparent;
+    transition:all .15s ease;
+  }
+  .btn-primary{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .btn-primary:hover{ background:var(--accent-d); border-color:var(--accent-d); }
+  .btn-ghost{ background:#fff; color:var(--accent); border-color:var(--line); }
+  .btn-ghost:hover{ border-color:var(--accent); }
+  .btn-text{
+    background:none; border:none; cursor:pointer; color:var(--muted);
+    font:500 .9rem 'IBM Plex Sans', sans-serif; text-decoration:underline;
+    text-underline-offset:3px; padding:6px 4px;
+  }
+  .btn-text:hover{ color:var(--accent); }
+  .spacer{ flex:1 1 auto; }
+  .score{ font:500 .85rem 'IBM Plex Mono', monospace; color:var(--muted); }
+
+  /* ---- Feedback + solution ---- */
+  .feedback{ margin-top:16px; font-weight:500; font-size:.96rem; display:none; }
+  .feedback.show{ display:block; }
+  .feedback.good{ color:var(--success); }
+  .feedback.bad{ color:var(--error); }
+  .solution{
+    display:none; margin-top:14px; padding:16px 18px;
+    background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    font-size:.95rem;
+  }
+  .solution.show{ display:block; }
+  .solution h4{
+    margin:0 0 8px; font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.08em; color:var(--muted);
+  }
+  .solution p{ margin:.4em 0; }
+
+  footer{ margin-top:30px; color:var(--muted); font-size:.82rem; text-align:center; line-height:1.6; }
+  footer a{ color:var(--accent); text-decoration:none; }
+  footer a:hover{ text-decoration:underline; }
+
+  @media (max-width:520px){
+    .wrap{ padding:26px 14px 60px; }
+    .actions{ gap:8px; }
+    .spacer{ flex-basis:100%; height:0; }
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .card{ animation:rise .25s ease both; }
+    @keyframes rise{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">ECO 3101 · Long-Run Competition</p>
+  <header>
+    <span class="mark" aria-hidden="true">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+        <path d="M5 29V5M5 29h24" stroke="#2b5c8a" stroke-width="2" stroke-linecap="round"/>
+        <path d="M6 24C12 24 13 9 28 8" stroke="#17263a" stroke-width="2" stroke-linecap="round" fill="none"/>
+      </svg>
+    </span>
+    <h1>Lecture 12 Exercises</h1>
+  </header>
+  <p class="sub">Intermediate Microeconomic Theory. Fresh numbers every time — work it out, type your answer, check yourself.</p>
+
+  <div class="topics" id="topics" role="group" aria-label="Choose a problem type"></div>
+
+  <div class="card" id="card">
+    <div class="eyebrow"><span id="eyebrow">—</span></div>
+    <div class="prompt" id="prompt"></div>
+
+    <div class="answers" id="answers"></div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="check">Check answer</button>
+      <button class="btn btn-ghost" id="next">New question</button>
+      <button class="btn-text" id="steps">Show steps</button>
+      <span class="spacer"></span>
+      <span class="score" id="score">Solved 0</span>
+    </div>
+
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <div class="solution" id="solution"></div>
+  </div>
+
+  <footer>
+    Ungraded self-practice — reload for a fresh set.<br>
+    Built for <strong>ECO 3101</strong> at Florida State University.<br>
+    Found an error, or have a correction or suggestion? Email
+    <a href="mailto:your-email@fsu.edu">your-email@fsu.edu</a>.
+  </footer>
+</div>
+
+<script>
+/* ============================ small helpers ============================ */
+const $ = (id) => document.getElementById(id);
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const randint = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+function shuffle(a){ a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const round = (x, d=6) => { const f = 10**d; return Math.round((x + Number.EPSILON) * f) / f; };
+const comma = (x) => x.toLocaleString('en-US');
+function parseNum(s){
+  if (s == null) return null;
+  s = String(s).trim().replace(/,/g,'').replace(/\s+/g,'');
+  if (s === '') return null;
+  // allow simple fractions like -3/4
+  const frac = s.match(/^(-?\d*\.?\d+)\/(-?\d*\.?\d+)$/);
+  if (frac){ const d = parseFloat(frac[2]); if (d === 0) return null; return parseFloat(frac[1]) / d; }
+  const v = Number(s);
+  return Number.isFinite(v) ? v : null;
+}
+function normTxt(s){
+  return String(s == null ? '' : s).toLowerCase()
+    .replace(/\s+/g,'').replace(/[*·×]/g,'').replace(/\\cdot/g,'')
+    .replace(/\^/g,'').replace(/\{|\}/g,'');
+}
+function typeset(){ if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); }
+
+/* ============================ state / engine ============================ */
+let current = 0;      // index into QUESTIONS
+let problem = null;   // the generated instance
+let solvedCount = 0;
+let mcPick = null;    // selected choice index for MC questions
+let multiPick = new Set(); // selected indices for multi-select questions
+
+function buildTopics(){
+  const box = $('topics');
+  box.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const b = document.createElement('button');
+    b.className = 'topic' + (i === current ? ' active' : '');
+    b.textContent = q.name;
+    b.addEventListener('click', () => { current = i; syncTopics(); newProblem(); });
+    box.appendChild(b);
+  });
+}
+function syncTopics(){
+  [...$('topics').children].forEach((b, i) => b.classList.toggle('active', i === current));
+}
+
+function newProblem(){
+  problem = QUESTIONS[current].gen();
+  mcPick = null;
+  multiPick = new Set();
+  $('eyebrow').textContent = QUESTIONS[current].eyebrow || QUESTIONS[current].name;
+  $('prompt').innerHTML = problem.promptHTML;
+
+  const wrap = $('answers');
+  wrap.innerHTML = '';
+
+  if (problem.mc){
+    // multiple-choice rendering
+    const list = document.createElement('div');
+    list.className = 'choices';
+    problem.mc.options.forEach((opt, i) => {
+      const c = document.createElement('button');
+      c.className = 'choice';
+      c.dataset.idx = i;
+      c.innerHTML = `<span class="bullet">${String.fromCharCode(65+i)}</span><span>${opt}</span>`;
+      c.addEventListener('click', () => {
+        mcPick = i;
+        [...list.children].forEach(ch => ch.classList.remove('sel','ok','no'));
+        c.classList.add('sel');
+      });
+      list.appendChild(c);
+    });
+    wrap.appendChild(list);
+  } else if (problem.multi){
+    // multiple-answers (checkbox) rendering
+    const list = document.createElement('div');
+    list.className = 'choices';
+    problem.multi.options.forEach((opt, i) => {
+      const c = document.createElement('button');
+      c.className = 'choice';
+      c.dataset.idx = i;
+      c.innerHTML = `<span class="box"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.2 3.2L13 4.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>${opt}</span>`;
+      c.addEventListener('click', () => {
+        if (multiPick.has(i)) multiPick.delete(i); else multiPick.add(i);
+        c.classList.toggle('sel', multiPick.has(i));
+        c.classList.remove('ok','no');
+      });
+      list.appendChild(c);
+    });
+    wrap.appendChild(list);
+  } else if (problem.match){
+    // matching rendering (each row: statement + a <select> of labels)
+    const box = document.createElement('div');
+    box.className = 'matchrows';
+    const optionsHTML = ['<option value="">\u2014 choose \u2014</option>']
+      .concat(problem.match.options.map((o,j) => `<option value="${j}">${o}</option>`)).join('');
+    problem.match.rows.forEach((row, i) => {
+      const r = document.createElement('div');
+      r.className = 'matchrow';
+      r.dataset.idx = i;
+      r.innerHTML = `<span class="ml">${row.left}</span><select data-idx="${i}">${optionsHTML}</select><span class="tag"></span>`;
+      box.appendChild(r);
+    });
+    wrap.appendChild(box);
+  } else {
+    // input-field rendering (numeric or text parts)
+    problem.parts.forEach((part, idx) => {
+      const field = document.createElement('div');
+      field.className = 'field';
+      field.innerHTML = `
+        <label>${part.label}</label>
+        <span class="inputwrap">
+          ${part.prefix ? `<span class="prefix">${part.prefix}</span>` : ''}
+          <input type="text" inputmode="${part.type === 'text' ? 'text' : 'decimal'}"
+                 autocomplete="off" data-idx="${idx}" placeholder="${part.placeholder || '?'}">
+          ${part.unit ? `<span class="unit">${part.unit}</span>` : ''}
+        </span>
+        <span class="tag"></span>`;
+      wrap.appendChild(field);
+    });
+  }
+
+  $('feedback').className = 'feedback';
+  $('feedback').textContent = '';
+  $('solution').className = 'solution';
+  $('solution').innerHTML = problem.solutionHTML;
+
+  typeset();
+  const first = wrap.querySelector('input');
+  if (first) first.focus();
+}
+
+function checkAnswers(){
+  const fb = $('feedback');
+
+  if (problem.mc){
+    const list = $('answers').querySelector('.choices');
+    if (mcPick == null){
+      fb.className = 'feedback show bad';
+      fb.textContent = 'Select an option first.';
+      return;
+    }
+    const correct = problem.mc.correct;
+    [...list.children].forEach((ch, i) => {
+      ch.classList.remove('sel','ok','no');
+      if (i === correct) ch.classList.add('ok');
+      else if (i === mcPick) ch.classList.add('no');
+    });
+    fb.className = 'feedback show';
+    if (mcPick === correct){
+      fb.classList.add('good'); fb.textContent = '\u2713 Correct.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite — the highlighted option is correct. See the steps below.';
+    }
+    return;
+  }
+
+  if (problem.multi){
+    const list = $('answers').querySelector('.choices');
+    if (multiPick.size === 0){
+      fb.className = 'feedback show bad';
+      fb.textContent = 'Select at least one option (or as many as apply).';
+      return;
+    }
+    const correct = new Set(problem.multi.correct);
+    const ok = correct.size === multiPick.size && [...correct].every(i => multiPick.has(i));
+    [...list.children].forEach((ch, i) => {
+      ch.classList.remove('sel','ok','no');
+      if (correct.has(i)) ch.classList.add('ok');
+      else if (multiPick.has(i)) ch.classList.add('no');
+    });
+    fb.className = 'feedback show';
+    if (ok){
+      fb.classList.add('good'); fb.textContent = '\u2713 Correct.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite \u2014 the correct set is highlighted green. See the steps below.';
+    }
+    return;
+  }
+
+  if (problem.match){
+    const rows = [...$('answers').querySelectorAll('.matchrow')];
+    let all = true, blank = false;
+    rows.forEach(r => {
+      const i = +r.dataset.idx;
+      const sel = r.querySelector('select');
+      const tag = r.querySelector('.tag');
+      r.classList.remove('ok','no');
+      if (sel.value === ''){ blank = true; all = false; if(tag) tag.textContent=''; return; }
+      if (+sel.value === problem.match.rows[i].correct){ r.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { r.classList.add('no'); if(tag) tag.textContent='try again'; all = false; }
+    });
+    fb.className = 'feedback show';
+    if (blank){ fb.classList.add('bad'); fb.textContent = 'Match every row before checking.'; }
+    else if (all){
+      fb.classList.add('good'); fb.textContent = '\u2713 All matched correctly.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite \u2014 the green rows are right; fix the others or peek at the steps.';
+    }
+    return;
+  }
+
+  const inputs = [...$('answers').querySelectorAll('input')];
+  let allCorrect = true, anyBlank = false;
+
+  inputs.forEach(inp => {
+    const idx = +inp.dataset.idx;
+    const part = problem.parts[idx];
+    const field = inp.closest('.field');
+    const tag = field.querySelector('.tag');
+    field.classList.remove('ok', 'no');
+
+    if (part.type === 'text'){
+      const raw = inp.value.trim();
+      if (raw === ''){ anyBlank = true; allCorrect = false; if(tag) tag.textContent=''; return; }
+      const got = normTxt(raw);
+      const ok = part.accept.map(normTxt).includes(got);
+      if (ok){ field.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { field.classList.add('no'); if(tag) tag.textContent='try again'; allCorrect = false; }
+    } else {
+      const val = parseNum(inp.value);
+      if (val === null){ anyBlank = true; allCorrect = false; if(tag) tag.textContent=''; return; }
+      if (Math.abs(val - part.answer) <= (part.tol ?? 0.01)){ field.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { field.classList.add('no'); if(tag) tag.textContent='try again'; allCorrect = false; }
+    }
+  });
+
+  fb.className = 'feedback show';
+  if (anyBlank){
+    fb.classList.add('bad');
+    fb.textContent = 'Enter an answer in each blank.';
+  } else if (allCorrect){
+    fb.classList.add('good');
+    fb.textContent = inputs.length > 1 ? '\u2713 All correct — nice work.' : '\u2713 Correct.';
+    solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+  } else {
+    fb.classList.add('bad');
+    fb.textContent = 'Not quite — fix the highlighted blank and try again, or peek at the steps.';
+  }
+}
+
+function showSteps(){ $('solution').classList.add('show'); typeset(); }
+
+$('check').addEventListener('click', checkAnswers);
+$('next').addEventListener('click', newProblem);
+$('steps').addEventListener('click', showSteps);
+$('answers').addEventListener('keydown', (e) => { if (e.key === 'Enter') checkAnswers(); });
+
+/* =========================================================================
+   QUESTIONS — each entry is one problem type. Edit numbers inside gen().
+   ========================================================================= */
+/* =========================================================================
+   Lecture 12 — Long-Run Competitive Equilibrium & Entry/Exit
+   ========================================================================= */
+const PRODUCTS = ['bicycles','backpacks','kayaks','desk lamps','umbrellas','sneakers','blenders','tents'];
+
+const QUESTIONS = [
+
+  /* ----- 1. Demand shift → short-run vs long-run table (match) --------
+     Firms identical, industry starts in LR equilibrium (zero profit).
+     Cost curves (AC, MC) never move — they're technology, not demand.
+     SR: only price/quantities adjust (number of firms fixed).
+     LR: free entry/exit pushes price back to the unchanged min-AC level,
+     so firm output returns to its original level; industry output and
+     the number of firms move with the direction of the demand shift. */
+  {
+    key: 'srlr',
+    name: 'Demand shift: SR & LR',
+    eyebrow: 'Short run vs. long run',
+    gen(){
+      const product = pick(PRODUCTS);
+      const dir = pick(['decrease','increase']);
+      const cause = dir === 'decrease'
+        ? pick(['a shift in tastes away from the good', 'a substitute becomes cheaper', 'income falls (the good is normal)'])
+        : pick(['a shift in tastes toward the good', 'a substitute becomes more expensive', 'income rises (the good is normal)']);
+      const OPTS = ['no change', 'increase', 'decrease', 'not enough information'];
+      const NC = 0, INC = 1, DEC = 2;
+      const move = dir === 'decrease' ? DEC : INC;
+      const rowsDef = [
+        ['Average cost (AC) \u2014 short run', NC],
+        ['Average cost (AC) \u2014 long run', NC],
+        ['Marginal cost (MC) \u2014 short run', NC],
+        ['Marginal cost (MC) \u2014 long run', NC],
+        ['Market price \u2014 short run', move],
+        ['Market price \u2014 long run', NC],
+        ['Industry output \u2014 short run', move],
+        ['Industry output \u2014 long run', move],
+        ['Firm output \u2014 short run', move],
+        ['Firm output \u2014 long run', NC],
+        ['Number of firms \u2014 long run', move],
+      ];
+      const rows = rowsDef.map(([left, correct]) => ({ left, correct }));
+      const promptHTML = `
+        <p>The market for ${product} is in long-run equilibrium: every (identical, potential) firm earns
+           exactly zero economic profit. In the short run the number of firms is fixed, so only price and
+           quantities can move; in the long run, firms are free to enter or exit.</p>
+        <p>Now suppose demand for ${product} ${dir}s because ${cause}. For each row, say what happens
+           relative to the original long-run equilibrium.</p>`;
+      const dirWord = dir === 'decrease' ? 'falls' : 'rises';
+      const moveWord = dir === 'decrease' ? 'decrease' : 'increase';
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p><strong>Cost curves never move.</strong> \\(AC\\) and \\(MC\\) come from technology and input
+           prices, not from the demand side, so both rows are <strong>no change</strong> in the short run
+           and the long run alike.</p>
+        <p><strong>Short run.</strong> The number of firms is frozen, so the shift in demand ${dirWord}
+           along the (fixed) short-run supply curve: market price and industry output both
+           <strong>${moveWord}</strong>. Each existing firm reads the new price off its own \\(MC\\) curve,
+           so firm output ${moveWord}s too \u2014 economic profit is no longer zero.</p>
+        <p><strong>Long run.</strong> Since \\(AC\\) hasn't shifted, the only price at which profit is
+           zero is still the original one, so free entry/exit pushes price back to <strong>no change</strong>.
+           At that price each firm again produces at the bottom of its \\(AC\\) curve, so firm output is
+           also <strong>no change</strong>. But industry output must ${moveWord} with the shift in demand
+           (same price, new demand curve), and since each firm's output is back to its original level,
+           the extra output can only come from the number of firms \u2014 so the number of firms
+           <strong>${moveWord}s</strong> (firms ${dir === 'decrease' ? 'exit' : 'enter'}).</p>`;
+      return { promptHTML, match: { rows, options: OPTS }, solutionHTML };
+    }
+  },
+
+  /* ----- 2. SR price vs. LR zero-profit price → entry/exit (Canvas-style) */
+  {
+    key: 'entryexit',
+    name: 'Entry & exit',
+    eyebrow: 'Zero-profit price',
+    gen(){
+      // EDIT NUMBERS HERE
+      const product = pick(PRODUCTS);
+      const LRP = pick([3,4,5,6,8,9,10,12]);
+      const delta = pick([1,2,3]);
+      const situation = pick(['above','below','equal']);
+      const SRP = situation === 'above' ? LRP + delta : situation === 'below' ? LRP - delta : LRP;
+      const sign = situation === 'above' ? 'positive' : situation === 'below' ? 'negative' : 'zero';
+      const move = situation === 'above' ? 'enter' : situation === 'below' ? 'exit' : 'no change';
+      const promptHTML = `
+        <p>The market for ${product} is currently at a short-run price of \\(\\$${SRP}\\). Every firm is
+           identical, and each firm's long-run zero-economic-profit price \u2014 the price at which
+           \\(P=\\) minimum \\(AC\\) \u2014 is \\(\\$${LRP}\\).</p>
+        <p>At the current price, is economic profit positive, negative, or zero? What will firms do, and
+           where does the market price end up once the long run plays out?</p>`;
+      const cmp = situation === 'above' ? '\\gt' : situation === 'below' ? '\\lt' : '=';
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Compare the current price to the zero-profit price: \\(\\$${SRP} ${cmp} \\$${LRP}\\),
+           so economic profit at the current price is <strong>${sign}</strong>.</p>
+        <p>${situation === 'above'
+            ? 'Price above minimum \\(AC\\) means existing firms are earning profit, which attracts new firms. As they enter, market supply shifts right and price falls.'
+            : situation === 'below'
+            ? 'Price below minimum \\(AC\\) means firms are losing money, so some exit. As they leave, market supply shifts left and price rises.'
+            : 'Price already equals minimum \\(AC\\), so profit is already zero \u2014 there is no incentive for anyone to enter or exit.'}
+           So firms will <strong>${move}</strong> the industry.</p>
+        <p>Entry and exit only stop once profit is back to zero, i.e. once price returns to the
+           zero-profit level: the long-run price is \\(\\mathbf{\\$${LRP}}\\).</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { type: 'text', label: 'Economic profit at the current price is', accept: [sign] },
+          { type: 'text', label: 'Firms will', accept: move === 'no change' ? ['no change', 'neither enter nor exit', 'stay'] : [move] },
+          { label: 'Long-run market price \\(=\\)', prefix: '$', answer: LRP, tol: 0.01 },
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 3. Long-run price & quantity from a cost function (MC = AC) --- */
+  {
+    key: 'zeroprofit',
+    name: 'LR price from costs',
+    eyebrow: '\\(MC=AC\\) at the minimum',
+    gen(){
+      // EDIT NUMBERS HERE — [c, F, q*, P*] all pre-verified consistent
+      const pool = [
+        [1,4,2,4], [1,9,3,6], [1,16,4,8], [1,25,5,10],
+        [2,8,2,8], [2,18,3,12], [2,32,4,16],
+        [4,4,1,8], [4,16,2,16], [4,36,3,24],
+        [9,9,1,18], [9,36,2,36],
+      ];
+      const [c, F, qStar, PStar] = pick(pool);
+      const promptHTML = `
+        <p>A firm in a competitive industry has total cost \\(TC(q)=${c}q^2+${F}\\).</p>
+        <p>Average cost is minimized exactly where \\(MC=AC\\). Use that condition to find the firm's
+           long-run equilibrium quantity \\(q^*\\) and the long-run market price \\(P^*\\).</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>\\(MC(q)=\\dfrac{d\\,TC}{dq}=${2*c}q\\), and \\(AC(q)=\\dfrac{TC(q)}{q}=${c}q+\\dfrac{${F}}{q}\\).</p>
+        <p>Set \\(MC=AC\\): \\(${2*c}q=${c}q+\\dfrac{${F}}{q}\\ \\Rightarrow\\ ${c}q=\\dfrac{${F}}{q}
+           \\ \\Rightarrow\\ q^2=\\dfrac{${F}}{${c}}=${F/c}\\ \\Rightarrow\\ q^*=${qStar}\\).</p>
+        <p>\\(P^*=AC(q^*)=${c}(${qStar})+\\dfrac{${F}}{${qStar}}=${c*qStar}+${F/qStar}=\\mathbf{${PStar}}\\).</p>
+        <p>Check: \\(MC(q^*)=${2*c}(${qStar})=${2*c*qStar}=P^*\\). \u2713</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(q^*=\\)', answer: qStar, tol: 0.01 },
+          { label: '\\(P^*=\\)', prefix: '$', answer: PStar, tol: 0.01 },
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 4. Market quantity → number of firms in LR equilibrium -------- */
+  {
+    key: 'numfirms',
+    name: 'Number of firms',
+    eyebrow: 'Market \\(\\to\\) firm-level',
+    gen(){
+      // EDIT NUMBERS HERE
+      const pool = [ [2,4],[3,6],[4,8],[5,10],[1,8],[2,12],[3,24],[1,18],[2,36] ]; // [qStar, PStar]
+      const [qStar, PStar] = pick(pool);
+      const N = pick([4,5,6,8,10,12,15,20]);
+      const e = pick([1,2,3,4]);
+      const Qmarket = N * qStar;
+      const D = Qmarket + e * PStar;
+      const eTxt = e === 1 ? '' : String(e);
+      const promptHTML = `
+        <p>Market demand for the good is \\(Q=${D}-${eTxt}P\\). Every identical firm in the long-run
+           equilibrium produces \\(q^*=${qStar}\\) units at the zero-profit price \\(P^*=\\$${PStar}\\).</p>
+        <p>Find the quantity demanded at \\(P^*\\), and the number of firms \\(N\\) in the long-run
+           equilibrium.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Plug \\(P^*\\) into market demand: \\(Q=${D}-${eTxt}(${PStar})=${D}-${e*PStar}=\\mathbf{${Qmarket}}\\).</p>
+        <p>In the long run every firm supplies the same \\(q^*\\), so the market quantity is just
+           \\(N\\) copies of it: \\(N=\\dfrac{Q}{q^*}=\\dfrac{${Qmarket}}{${qStar}}=\\mathbf{${N}}\\).</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(Q\\) at \\(P^*=\\)', answer: Qmarket, tol: 0.01 },
+          { label: '\\(N=\\)', answer: N, tol: 0.01 },
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 5. Comparative statics: demand shocks vs. cost shocks (match) - */
+  {
+    key: 'shocks',
+    name: 'Cost & demand shocks',
+    eyebrow: 'Comparative statics',
+    gen(){
+      const pairs = [
+        { p: 'Market demand permanently increases', e: 'Long-run price: no change \u2014 number of firms: increases' },
+        { p: 'Market demand permanently decreases', e: 'Long-run price: no change \u2014 number of firms: decreases' },
+        { p: 'A new license fee raises every firm\u2019s fixed cost', e: 'Long-run price: increases \u2014 number of firms: decreases' },
+        { p: 'A fixed-cost subsidy lowers every firm\u2019s fixed cost', e: 'Long-run price: decreases \u2014 number of firms: increases' },
+      ];
+      const rowsSrc = shuffle(pairs);
+      const options = shuffle(pairs.map(x => x.e));
+      const rows = rowsSrc.map(r => ({ left: r.p, correct: options.indexOf(r.e) }));
+      const promptHTML = `
+        <p>Match each shock to its effect on the long-run competitive equilibrium, starting from a market
+           in long-run equilibrium with identical firms.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p><strong>Demand shocks move the quantity margin, not the price margin.</strong> The long-run
+           price is pinned down by each firm's (unchanged) minimum \\(AC\\), so a shift in demand alone
+           can't move it. What has to change is how many firms are needed to cover the new demand at that
+           same price \u2014 more demand pulls firms in, less demand pushes firms out.</p>
+        <p><strong>Cost shocks move the price margin.</strong> A fixed-cost change shifts every firm's
+           \\(AC\\) curve, so the zero-profit price itself moves \u2014 up if fixed costs rise, down if they
+           fall. Since price and firm output move together with the new minimum of \\(AC\\), and demand
+           is unchanged, the number of firms adjusts in the same direction as the fixed-cost change
+           (fewer firms needed when each firm is bigger and price is higher; more, smaller-scale firms
+           when costs and price fall).</p>`;
+      return { promptHTML, match: { rows, options }, solutionHTML };
+    }
+  },
+
+];
+
+/* ---- Startup ----
+   Primary path: MathJax's pageReady hook calls boot() once math is ready.
+   Fallback: if MathJax can't load (offline), still show questions after 3s. */
+let booted = false;
+function boot(){ if (booted) return; booted = true; buildTopics(); newProblem(); }
+setTimeout(() => { if (!booted) boot(); }, 3000);
+</script>
+</body>
+</html>
