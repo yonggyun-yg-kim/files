@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.5) (preloaded format=pdflatex 2026.1.28)  19 AUG 2026 14:05
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.5) (preloaded format=pdflatex 2026.1.28)  8 SEP 2026 15:32
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -350,12 +350,19 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <6> on input line 9.
 (CV_ygkim_employment.tex) (CV_ygkim_education.tex)
-(CV_ygkim_research_interest.tex) (CV_ygkim_research_papers.tex) [1
+(CV_ygkim_research_interest.tex) (CV_ygkim_research_papers.tex
+Overfull \hbox (5.0101pt too wide) in paragraph at lines 31--32
+[][][]\OT1/cmr/m/n/10.95 ``\OT1/cmr/m/it/10.95 Strategic Con-ceal-ment in In-no
+-va-tion Races\OT1/cmr/m/n/10.95 ,''[][] with [][]Fran-cisco Poggi[][], 2nd Rou
+nd \OT1/cmr/bx/n/10.95 R&R \OT1/cmr/m/n/10.95 at AEJ:Micro 
+ []
 
-{C:/Users/yk23l/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}] (CV_ygkim_te
-aching.tex)
-(CV_ygkim_experience.tex) (CV_ygkim_conference_seminar.tex)
-(CV_ygkim_fellowship.tex [2]) (CV_ygkim_references.tex) [3] (CV_ygkim.aux)
+) [1
+
+{C:/Users/yk23l/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}]
+(CV_ygkim_teaching.tex) (CV_ygkim_experience.tex)
+(CV_ygkim_conference_seminar.tex) (CV_ygkim_fellowship.tex [2])
+(CV_ygkim_references.tex) [3] (CV_ygkim.aux)
  ***********
 LaTeX2e <2023-06-01> patch level 1
 L3 programming layer <2023-06-30>
@@ -364,21 +371,21 @@ Package rerunfilecheck Info: File `CV_ygkim.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 9582 strings out of 475551
- 150121 string characters out of 5772369
- 1927238 words of memory out of 5000000
- 30670 multiletter control sequences out of 15000+600000
+ 9581 strings out of 475551
+ 150109 string characters out of 5772369
+ 1926238 words of memory out of 5000000
+ 30669 multiletter control sequences out of 15000+600000
  562673 words of font info for 51 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 77i,5n,82p,629b,507s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 77i,5n,82p,629b,619s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/Progra
 m Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Program Files/MiKT
 eX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Program Files/MiKTeX/fonts/type
 1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX/fonts/type1/public/ams
 fonts/cm/cmti10.pfb>
-Output written on CV_ygkim.pdf (3 pages, 100333 bytes).
+Output written on CV_ygkim.pdf (3 pages, 100718 bytes).
 PDF statistics:
- 62 PDF objects out of 1000 (max. 8388607)
+ 63 PDF objects out of 1000 (max. 8388607)
  4 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
