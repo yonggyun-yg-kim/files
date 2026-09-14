@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  ECO 3101 — Interactive practice page.  Self-contained: one HTML file.
+  No installation, no server. Double-click to open; drop into a GitHub repo
+  to publish for students.
+
+  HOW IT'S ORGANIZED (for editing later):
+  - All the math/questions live in the QUESTIONS array near the bottom of the
+    <script>. Each entry is one "problem type." To change the random ranges,
+    edit the numbers inside its gen() function — look for "EDIT NUMBERS HERE".
+  - To add a new problem type, copy one block and adjust it.
+  - The look (colors/fonts) is in the <style> block; you can ignore it.
+  ============================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lecture 14 Exercises — Intermediate Microeconomics</title>
+
+<!-- Fonts: IBM Plex family (academic/technical feel) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- MathJax: renders the LaTeX math. Loads from a CDN; needs internet.
+     We boot the app from MathJax's pageReady hook (see config below). -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(', '\\)'], ['$', '$']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+    svg: { fontCache: 'global' },
+    startup: {
+      typeset: false,
+      pageReady: () => MathJax.startup.defaultPageReady().then(() => boot())
+    }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+
+<style>
+  :root{
+    --paper:#eef1f5;        /* page background (cool soft white) */
+    --grid:#e0e5ec;         /* faint graph-paper lines */
+    --card:#ffffff;
+    --ink:#17263a;          /* primary text: deep slate-navy */
+    --muted:#5d6b7c;        /* secondary text */
+    --line:#dde3ea;         /* hairlines / borders */
+    --accent:#2b5c8a;       /* scholarly blue */
+    --accent-d:#1f456a;
+    --success:#2f7a52;
+    --success-bg:#eaf4ee;
+    --error:#b0432e;
+    --error-bg:#f7ece9;
+    --shadow:0 1px 2px rgba(23,38,58,.05), 0 12px 30px rgba(23,38,58,.07);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    color:var(--ink);
+    background-color:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:26px 26px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{ max-width:740px; margin:0 auto; padding:40px 20px 80px; }
+
+  /* ---- Header ---- */
+  .kicker{
+    font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.13em;
+    color:var(--accent); margin:0 0 10px;
+  }
+  header{ display:flex; align-items:center; gap:14px; margin-bottom:6px; }
+  .mark{ flex:0 0 auto; }
+  .mark svg{ display:block; }
+  h1{
+    font-family:'IBM Plex Serif', Georgia, serif;
+    font-weight:600; font-size:1.7rem; margin:0; letter-spacing:.01em;
+  }
+  .sub{ color:var(--muted); margin:.4em 0 26px; font-size:1rem; }
+
+  /* ---- Topic selector ---- */
+  .topics{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+  .topic{
+    font:500 .85rem/1 'IBM Plex Sans', sans-serif;
+    color:var(--muted); background:var(--card);
+    border:1px solid var(--line); border-radius:999px;
+    padding:8px 15px; cursor:pointer; transition:all .15s ease;
+  }
+  .topic:hover{ border-color:var(--accent); color:var(--accent); }
+  .topic.active{
+    background:var(--accent); border-color:var(--accent);
+    color:#fff; box-shadow:0 4px 12px rgba(43,92,138,.22);
+  }
+
+  /* ---- Card ---- */
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:26px 26px 22px; box-shadow:var(--shadow);
+  }
+  .eyebrow{
+    font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.1em; color:var(--accent);
+    margin-bottom:12px; display:flex; align-items:center; gap:8px;
+  }
+  .prompt{ font-size:1.05rem; }
+  .prompt p{ margin:.5em 0; }
+  .prompt .hint{
+    color:var(--muted); font-size:.92rem;
+    border-left:3px solid var(--line); padding-left:12px; margin-top:14px;
+  }
+
+  /* ---- Answer fields ---- */
+  .answers{ margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+  .field{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .field label{ font-size:.95rem; color:var(--ink); min-width:0; }
+  .field .inputwrap{ display:inline-flex; align-items:center; gap:6px; }
+  .field .prefix{ color:var(--muted); font-family:'IBM Plex Mono', monospace; }
+  .field input{
+    width:130px; font:500 1rem 'IBM Plex Mono', monospace;
+    color:var(--ink); background:var(--paper);
+    border:1.5px solid var(--line); border-radius:9px; padding:9px 11px;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .field input:focus{ outline:none; border-color:var(--accent); background:#fff; }
+  .field .unit{ color:var(--muted); font-size:.9rem; }
+  .field.ok input{ border-color:var(--success); background:var(--success-bg); }
+  .field.no input{ border-color:var(--error); background:var(--error-bg); }
+  .field .tag{
+    font:600 .68rem/1 'IBM Plex Mono', monospace; text-transform:uppercase;
+    letter-spacing:.06em; padding:3px 7px; border-radius:6px; opacity:0;
+  }
+  .field.ok .tag{ opacity:1; color:var(--success); background:var(--success-bg); }
+  .field.no .tag{ opacity:1; color:var(--error); background:var(--error-bg); }
+
+  /* ---- Multiple choice ---- */
+  .choices{ margin-top:20px; display:flex; flex-direction:column; gap:10px; }
+  .choice{
+    text-align:left; font:500 1rem 'IBM Plex Sans', sans-serif; color:var(--ink);
+    background:var(--paper); border:1.5px solid var(--line); border-radius:11px;
+    padding:13px 16px; cursor:pointer; transition:all .13s ease;
+    display:flex; align-items:center; gap:12px;
+  }
+  .choice:hover{ border-color:var(--accent); }
+  .choice .bullet{
+    flex:0 0 auto; width:22px; height:22px; border-radius:50%;
+    border:1.5px solid var(--line); display:inline-flex; align-items:center;
+    justify-content:center; font:600 .8rem 'IBM Plex Mono', monospace; color:var(--muted);
+  }
+  .choice.sel{ border-color:var(--accent); background:#fff; box-shadow:0 3px 10px rgba(43,92,138,.14); }
+  .choice.sel .bullet{ border-color:var(--accent); color:var(--accent); }
+  .choice.ok{ border-color:var(--success); background:var(--success-bg); }
+  .choice.ok .bullet{ border-color:var(--success); color:var(--success); background:#fff; }
+  .choice.no{ border-color:var(--error); background:var(--error-bg); }
+  .choice.no .bullet{ border-color:var(--error); color:var(--error); background:#fff; }
+
+  /* ---- Multi-select (checkbox) ---- */
+  .choice .box{
+    flex:0 0 auto; width:21px; height:21px; border-radius:6px;
+    border:1.5px solid var(--line); display:inline-flex; align-items:center;
+    justify-content:center; background:#fff;
+  }
+  .choice .box svg{ width:13px; height:13px; opacity:0; }
+  .choice.sel .box{ border-color:var(--accent); background:var(--accent); }
+  .choice.sel .box svg{ opacity:1; }
+  .choice.ok .box{ border-color:var(--success); background:var(--success); }
+  .choice.ok .box svg{ opacity:1; }
+  .choice.no .box{ border-color:var(--error); background:var(--error); }
+  .choice.no .box svg{ opacity:1; }
+
+  /* ---- Matching ---- */
+  .matchrows{ margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+  .matchrow{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .matchrow .ml{ flex:1 1 250px; font-size:.98rem; }
+  .matchrow select{
+    font:500 .95rem 'IBM Plex Sans',sans-serif; color:var(--ink); background:var(--paper);
+    border:1.5px solid var(--line); border-radius:9px; padding:9px 11px; min-width:190px; cursor:pointer;
+  }
+  .matchrow select:focus{ outline:none; border-color:var(--accent); background:#fff; }
+  .matchrow.ok select{ border-color:var(--success); background:var(--success-bg); }
+  .matchrow.no select{ border-color:var(--error); background:var(--error-bg); }
+  .matchrow .tag{ font:600 .68rem/1 'IBM Plex Mono',monospace; text-transform:uppercase;
+    letter-spacing:.06em; padding:3px 7px; border-radius:6px; opacity:0; }
+  .matchrow.ok .tag{ opacity:1; color:var(--success); background:var(--success-bg); }
+  .matchrow.no .tag{ opacity:1; color:var(--error); background:var(--error-bg); }
+
+  /* ---- Diagram ---- */
+  .diagram{ margin:18px 0 6px; text-align:center; }
+  .diagram svg{ max-width:100%; height:auto; background:#fff;
+    border:1px solid var(--line); border-radius:10px; }
+  .diagram .cap{ color:var(--muted); font-size:.85rem; margin-top:6px; }
+
+  /* ---- Data table (cost / schedule tables in prompts) ---- */
+  .costtable{
+    border-collapse:collapse; margin:16px auto; background:#fff;
+    font:500 .95rem 'IBM Plex Mono',monospace; min-width:280px;
+  }
+  .costtable th, .costtable td{
+    border:1px solid var(--line); padding:7px 16px; text-align:right;
+  }
+  .costtable th{
+    background:var(--paper); font:600 .8rem 'IBM Plex Sans',sans-serif;
+    text-transform:uppercase; letter-spacing:.05em; color:var(--muted);
+  }
+
+  /* ---- Actions ---- */
+  .actions{ display:flex; align-items:center; gap:10px; margin-top:22px; flex-wrap:wrap; }
+  .btn{
+    font:600 .92rem 'IBM Plex Sans', sans-serif; cursor:pointer;
+    border-radius:10px; padding:11px 18px; border:1.5px solid transparent;
+    transition:all .15s ease;
+  }
+  .btn-primary{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .btn-primary:hover{ background:var(--accent-d); border-color:var(--accent-d); }
+  .btn-ghost{ background:#fff; color:var(--accent); border-color:var(--line); }
+  .btn-ghost:hover{ border-color:var(--accent); }
+  .btn-text{
+    background:none; border:none; cursor:pointer; color:var(--muted);
+    font:500 .9rem 'IBM Plex Sans', sans-serif; text-decoration:underline;
+    text-underline-offset:3px; padding:6px 4px;
+  }
+  .btn-text:hover{ color:var(--accent); }
+  .spacer{ flex:1 1 auto; }
+  .score{ font:500 .85rem 'IBM Plex Mono', monospace; color:var(--muted); }
+
+  /* ---- Feedback + solution ---- */
+  .feedback{ margin-top:16px; font-weight:500; font-size:.96rem; display:none; }
+  .feedback.show{ display:block; }
+  .feedback.good{ color:var(--success); }
+  .feedback.bad{ color:var(--error); }
+  .solution{
+    display:none; margin-top:14px; padding:16px 18px;
+    background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    font-size:.95rem;
+  }
+  .solution.show{ display:block; }
+  .solution h4{
+    margin:0 0 8px; font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.08em; color:var(--muted);
+  }
+  .solution p{ margin:.4em 0; }
+
+  footer{ margin-top:30px; color:var(--muted); font-size:.82rem; text-align:center; line-height:1.6; }
+  footer a{ color:var(--accent); text-decoration:none; }
+  footer a:hover{ text-decoration:underline; }
+
+  @media (max-width:520px){
+    .wrap{ padding:26px 14px 60px; }
+    .actions{ gap:8px; }
+    .spacer{ flex-basis:100%; height:0; }
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .card{ animation:rise .25s ease both; }
+    @keyframes rise{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">ECO 3101 · Positive Externalities</p>
+  <header>
+    <span class="mark" aria-hidden="true">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+        <path d="M5 29V5M5 29h24" stroke="#2b5c8a" stroke-width="2" stroke-linecap="round"/>
+        <path d="M6 24C12 24 13 9 28 8" stroke="#17263a" stroke-width="2" stroke-linecap="round" fill="none"/>
+      </svg>
+    </span>
+    <h1>Lecture 14 Exercises</h1>
+  </header>
+  <p class="sub">Intermediate Microeconomic Theory. Fresh numbers every time — work it out, type your answer, check yourself.</p>
+
+  <div class="topics" id="topics" role="group" aria-label="Choose a problem type"></div>
+
+  <div class="card" id="card">
+    <div class="eyebrow"><span id="eyebrow">—</span></div>
+    <div class="prompt" id="prompt"></div>
+
+    <div class="answers" id="answers"></div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="check">Check answer</button>
+      <button class="btn btn-ghost" id="next">New question</button>
+      <button class="btn-text" id="steps">Show steps</button>
+      <span class="spacer"></span>
+      <span class="score" id="score">Solved 0</span>
+    </div>
+
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <div class="solution" id="solution"></div>
+  </div>
+
+  <footer>
+    Ungraded self-practice — reload for a fresh set.<br>
+    Built for <strong>ECO 3101</strong> at Florida State University.<br>
+    Found an error, or have a correction or suggestion? Email
+    <a href="mailto:your-email@fsu.edu">your-email@fsu.edu</a>.
+  </footer>
+</div>
+
+<script>
+/* ============================ small helpers ============================ */
+const $ = (id) => document.getElementById(id);
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const randint = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+function shuffle(a){ a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const round = (x, d=6) => { const f = 10**d; return Math.round((x + Number.EPSILON) * f) / f; };
+const comma = (x) => x.toLocaleString('en-US');
+function parseNum(s){
+  if (s == null) return null;
+  s = String(s).trim().replace(/,/g,'').replace(/\s+/g,'');
+  if (s === '') return null;
+  // allow simple fractions like -3/4
+  const frac = s.match(/^(-?\d*\.?\d+)\/(-?\d*\.?\d+)$/);
+  if (frac){ const d = parseFloat(frac[2]); if (d === 0) return null; return parseFloat(frac[1]) / d; }
+  const v = Number(s);
+  return Number.isFinite(v) ? v : null;
+}
+function normTxt(s){
+  return String(s == null ? '' : s).toLowerCase()
+    .replace(/\s+/g,'').replace(/[*·×]/g,'').replace(/\\cdot/g,'')
+    .replace(/\^/g,'').replace(/\{|\}/g,'');
+}
+function typeset(){ if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); }
+
+/* ============================ state / engine ============================ */
+let current = 0;      // index into QUESTIONS
+let problem = null;   // the generated instance
+let solvedCount = 0;
+let mcPick = null;    // selected choice index for MC questions
+let multiPick = new Set(); // selected indices for multi-select questions
+
+function buildTopics(){
+  const box = $('topics');
+  box.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const b = document.createElement('button');
+    b.className = 'topic' + (i === current ? ' active' : '');
+    b.textContent = q.name;
+    b.addEventListener('click', () => { current = i; syncTopics(); newProblem(); });
+    box.appendChild(b);
+  });
+}
+function syncTopics(){
+  [...$('topics').children].forEach((b, i) => b.classList.toggle('active', i === current));
+}
+
+function newProblem(){
+  problem = QUESTIONS[current].gen();
+  mcPick = null;
+  multiPick = new Set();
+  $('eyebrow').textContent = QUESTIONS[current].eyebrow || QUESTIONS[current].name;
+  $('prompt').innerHTML = problem.promptHTML;
+
+  const wrap = $('answers');
+  wrap.innerHTML = '';
+
+  if (problem.mc){
+    // multiple-choice rendering
+    const list = document.createElement('div');
+    list.className = 'choices';
+    problem.mc.options.forEach((opt, i) => {
+      const c = document.createElement('button');
+      c.className = 'choice';
+      c.dataset.idx = i;
+      c.innerHTML = `<span class="bullet">${String.fromCharCode(65+i)}</span><span>${opt}</span>`;
+      c.addEventListener('click', () => {
+        mcPick = i;
+        [...list.children].forEach(ch => ch.classList.remove('sel','ok','no'));
+        c.classList.add('sel');
+      });
+      list.appendChild(c);
+    });
+    wrap.appendChild(list);
+  } else if (problem.multi){
+    // multiple-answers (checkbox) rendering
+    const list = document.createElement('div');
+    list.className = 'choices';
+    problem.multi.options.forEach((opt, i) => {
+      const c = document.createElement('button');
+      c.className = 'choice';
+      c.dataset.idx = i;
+      c.innerHTML = `<span class="box"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.2 3.2L13 4.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>${opt}</span>`;
+      c.addEventListener('click', () => {
+        if (multiPick.has(i)) multiPick.delete(i); else multiPick.add(i);
+        c.classList.toggle('sel', multiPick.has(i));
+        c.classList.remove('ok','no');
+      });
+      list.appendChild(c);
+    });
+    wrap.appendChild(list);
+  } else if (problem.match){
+    // matching rendering (each row: statement + a <select> of labels)
+    const box = document.createElement('div');
+    box.className = 'matchrows';
+    const optionsHTML = ['<option value="">\u2014 choose \u2014</option>']
+      .concat(problem.match.options.map((o,j) => `<option value="${j}">${o}</option>`)).join('');
+    problem.match.rows.forEach((row, i) => {
+      const r = document.createElement('div');
+      r.className = 'matchrow';
+      r.dataset.idx = i;
+      r.innerHTML = `<span class="ml">${row.left}</span><select data-idx="${i}">${optionsHTML}</select><span class="tag"></span>`;
+      box.appendChild(r);
+    });
+    wrap.appendChild(box);
+  } else {
+    // input-field rendering (numeric or text parts)
+    problem.parts.forEach((part, idx) => {
+      const field = document.createElement('div');
+      field.className = 'field';
+      field.innerHTML = `
+        <label>${part.label}</label>
+        <span class="inputwrap">
+          ${part.prefix ? `<span class="prefix">${part.prefix}</span>` : ''}
+          <input type="text" inputmode="${part.type === 'text' ? 'text' : 'decimal'}"
+                 autocomplete="off" data-idx="${idx}" placeholder="${part.placeholder || '?'}">
+          ${part.unit ? `<span class="unit">${part.unit}</span>` : ''}
+        </span>
+        <span class="tag"></span>`;
+      wrap.appendChild(field);
+    });
+  }
+
+  $('feedback').className = 'feedback';
+  $('feedback').textContent = '';
+  $('solution').className = 'solution';
+  $('solution').innerHTML = problem.solutionHTML;
+
+  typeset();
+  const first = wrap.querySelector('input');
+  if (first) first.focus();
+}
+
+function checkAnswers(){
+  const fb = $('feedback');
+
+  if (problem.mc){
+    const list = $('answers').querySelector('.choices');
+    if (mcPick == null){
+      fb.className = 'feedback show bad';
+      fb.textContent = 'Select an option first.';
+      return;
+    }
+    const correct = problem.mc.correct;
+    [...list.children].forEach((ch, i) => {
+      ch.classList.remove('sel','ok','no');
+      if (i === correct) ch.classList.add('ok');
+      else if (i === mcPick) ch.classList.add('no');
+    });
+    fb.className = 'feedback show';
+    if (mcPick === correct){
+      fb.classList.add('good'); fb.textContent = '\u2713 Correct.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite — the highlighted option is correct. See the steps below.';
+    }
+    return;
+  }
+
+  if (problem.multi){
+    const list = $('answers').querySelector('.choices');
+    if (multiPick.size === 0){
+      fb.className = 'feedback show bad';
+      fb.textContent = 'Select at least one option (or as many as apply).';
+      return;
+    }
+    const correct = new Set(problem.multi.correct);
+    const ok = correct.size === multiPick.size && [...correct].every(i => multiPick.has(i));
+    [...list.children].forEach((ch, i) => {
+      ch.classList.remove('sel','ok','no');
+      if (correct.has(i)) ch.classList.add('ok');
+      else if (multiPick.has(i)) ch.classList.add('no');
+    });
+    fb.className = 'feedback show';
+    if (ok){
+      fb.classList.add('good'); fb.textContent = '\u2713 Correct.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite \u2014 the correct set is highlighted green. See the steps below.';
+    }
+    return;
+  }
+
+  if (problem.match){
+    const rows = [...$('answers').querySelectorAll('.matchrow')];
+    let all = true, blank = false;
+    rows.forEach(r => {
+      const i = +r.dataset.idx;
+      const sel = r.querySelector('select');
+      const tag = r.querySelector('.tag');
+      r.classList.remove('ok','no');
+      if (sel.value === ''){ blank = true; all = false; if(tag) tag.textContent=''; return; }
+      if (+sel.value === problem.match.rows[i].correct){ r.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { r.classList.add('no'); if(tag) tag.textContent='try again'; all = false; }
+    });
+    fb.className = 'feedback show';
+    if (blank){ fb.classList.add('bad'); fb.textContent = 'Match every row before checking.'; }
+    else if (all){
+      fb.classList.add('good'); fb.textContent = '\u2713 All matched correctly.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite \u2014 the green rows are right; fix the others or peek at the steps.';
+    }
+    return;
+  }
+
+  const inputs = [...$('answers').querySelectorAll('input')];
+  let allCorrect = true, anyBlank = false;
+
+  inputs.forEach(inp => {
+    const idx = +inp.dataset.idx;
+    const part = problem.parts[idx];
+    const field = inp.closest('.field');
+    const tag = field.querySelector('.tag');
+    field.classList.remove('ok', 'no');
+
+    if (part.type === 'text'){
+      const raw = inp.value.trim();
+      if (raw === ''){ anyBlank = true; allCorrect = false; if(tag) tag.textContent=''; return; }
+      const got = normTxt(raw);
+      const ok = part.accept.map(normTxt).includes(got);
+      if (ok){ field.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { field.classList.add('no'); if(tag) tag.textContent='try again'; allCorrect = false; }
+    } else {
+      const val = parseNum(inp.value);
+      if (val === null){ anyBlank = true; allCorrect = false; if(tag) tag.textContent=''; return; }
+      if (Math.abs(val - part.answer) <= (part.tol ?? 0.01)){ field.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { field.classList.add('no'); if(tag) tag.textContent='try again'; allCorrect = false; }
+    }
+  });
+
+  fb.className = 'feedback show';
+  if (anyBlank){
+    fb.classList.add('bad');
+    fb.textContent = 'Enter an answer in each blank.';
+  } else if (allCorrect){
+    fb.classList.add('good');
+    fb.textContent = inputs.length > 1 ? '\u2713 All correct — nice work.' : '\u2713 Correct.';
+    solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+  } else {
+    fb.classList.add('bad');
+    fb.textContent = 'Not quite — fix the highlighted blank and try again, or peek at the steps.';
+  }
+}
+
+function showSteps(){ $('solution').classList.add('show'); typeset(); }
+
+$('check').addEventListener('click', checkAnswers);
+$('next').addEventListener('click', newProblem);
+$('steps').addEventListener('click', showSteps);
+$('answers').addEventListener('keydown', (e) => { if (e.key === 'Enter') checkAnswers(); });
+
+/* =========================================================================
+   QUESTIONS — each entry is one problem type. Edit numbers inside gen().
+   ========================================================================= */
+/* =========================================================================
+   Lecture 14 — Positive Externalities & the Pigouvian Subsidy
+   Model: D(q)=A-md*q (demand = social marginal benefit, no consumption
+   externality). SMC(q)=ms*q (social marginal cost — production's "true"
+   cost to society) and PMC(q)=SMC(q)+t (private marginal cost runs a
+   constant t ABOVE the social cost, since production also throws off t
+   of external BENEFIT per unit that the private cost doesn't credit).
+   Unsubsidized equilibrium solves D=PMC at (q1,P1); the efficient /
+   Pigouvian-subsidized equilibrium solves D=SMC at (q2,P2), with q2>q1
+   since the unsubsidized market under-produces the good.
+   (SMC is anchored at the origin, not PMC, purely so that the "external
+   benefit" region — the strip between PMC and SMC — never dips below the
+   price axis in the diagram; it doesn't change any of the economics.) */
+
+/* [ms, md, A, t, q1, P1, q2, P2, DWL, extBenefit@q1, subsidyPaid@q2, CS, PS]
+   — every tuple independently re-derived and checked against
+   D(q1)=PMC(q1)=P1, D(q2)=SMC(q2)=P2, PMC(q2)=P2+t, SMC(q1)=P1-t. */
+const EXT_POOL = [
+  [1,1,12,4, 4,8,  6,6,  4, 16,24, 8,8],
+  [1,1,14,6, 4,10, 7,7,  9, 24,42, 8,8],
+  [1,1,16,8, 4,12, 8,8,  16,32,64, 8,8],
+  [1,2,24,6, 6,12, 8,8,  6, 36,48, 36,18],
+  [1,2,30,6, 8,14, 10,10,6, 48,60, 64,32],
+  [1,2,36,6, 10,16,12,12,6, 60,72, 100,50],
+  [2,1,24,6, 6,18, 8,16, 6, 36,48, 18,36],
+  [2,1,30,6, 8,22, 10,20,6, 48,60, 32,64],
+  [2,1,36,6, 10,26,12,24,6, 60,72, 50,100],
+  [2,2,20,4, 4,12, 5,10, 2, 16,20, 16,16],
+  [2,2,24,4, 5,14, 6,12, 2, 20,24, 25,25],
+  [2,2,24,12,3,18, 6,12, 18,36,72, 9,9],
+];
+
+/* ---- generic inline SVG: D, PMC(=S), SMC lines over [0, qMax] with an
+   arbitrary list of shaded polygons. Used by every diagram-based question
+   below so region geometry is defined in exactly one place. ---- */
+function extDiagramBase(ms, md, A, t, q1, q2, qMax, regions){
+  const W = 460, H = 320, m = { l: 54, r: 62, t: 16, b: 34 };
+  const pw = W - m.l - m.r, ph = H - m.t - m.b;
+  const pMax = A * 1.08;
+  const sx = q => m.l + (q / qMax) * pw;
+  const sy = p => m.t + ph - (p / pMax) * ph;
+  const D = q => A - md * q;
+  const SMC = q => ms * q;
+  const S = q => ms * q + t;   // PMC
+
+  const poly = (pts, fill, label) => {
+    const cx = pts.reduce((s, p) => s + p[0], 0) / pts.length;
+    const cy = pts.reduce((s, p) => s + p[1], 0) / pts.length;
+    const d = pts.map(([q, p]) => `${sx(q).toFixed(1)},${sy(p).toFixed(1)}`).join(' ');
+    return `<polygon points="${d}" fill="${fill}" fill-opacity="0.28" stroke="${fill}" stroke-width="1"/>`
+         + `<text x="${sx(cx).toFixed(1)}" y="${sy(cy).toFixed(1)}" text-anchor="middle"
+              font-size="14" font-weight="700" fill="#17263a">${label}</text>`;
+  };
+
+  let g = '';
+  regions.forEach(r => { g += poly(r.pts, r.color, r.label); });
+
+  g += `<line x1="${m.l}" y1="${m.t}" x2="${m.l}" y2="${m.t+ph}" stroke="#17263a" stroke-width="1.5"/>`;
+  g += `<line x1="${m.l}" y1="${m.t+ph}" x2="${m.l+pw}" y2="${m.t+ph}" stroke="#17263a" stroke-width="1.5"/>`;
+  g += `<text x="${m.l-8}" y="${m.t+4}" text-anchor="end" font-size="11" fill="#5d6b7c">Price</text>`;
+  g += `<text x="${m.l+pw}" y="${m.t+ph+20}" text-anchor="end" font-size="11" fill="#5d6b7c">Quantity</text>`;
+
+  [[q1,'q\u2081'],[q2,'q\u2082']].forEach(([q,lab]) => {
+    g += `<line x1="${sx(q).toFixed(1)}" y1="${sy(0).toFixed(1)}" x2="${sx(q).toFixed(1)}" y2="${m.t}"
+             stroke="#dde3ea" stroke-width="1.5" stroke-dasharray="3 3"/>`;
+    g += `<text x="${sx(q).toFixed(1)}" y="${m.t+ph+20}" text-anchor="middle" font-size="11" fill="#5d6b7c">${lab}</text>`;
+  });
+
+  // y-axis price ticks at the two headline equilibrium prices, P1=D(q1), P2=D(q2)
+  const p1 = D(q1), p2 = D(q2);
+  [[p1,'P\u2081'],[p2,'P\u2082']].forEach(([p,lab]) => {
+    g += `<line x1="${(m.l-4).toFixed(1)}" y1="${sy(p).toFixed(1)}" x2="${m.l}" y2="${sy(p).toFixed(1)}"
+             stroke="#17263a" stroke-width="1.5"/>`;
+    g += `<text x="${(m.l-8).toFixed(1)}" y="${(sy(p)+4).toFixed(1)}" text-anchor="end" font-size="11"
+             fill="#5d6b7c">${lab}</text>`;
+  });
+
+  const line = (f, x0, x1, color, label) => {
+    g += `<line x1="${sx(x0).toFixed(1)}" y1="${sy(f(x0)).toFixed(1)}"
+               x2="${sx(x1).toFixed(1)}" y2="${sy(f(x1)).toFixed(1)}"
+               stroke="${color}" stroke-width="2.2"/>`;
+    g += `<text x="${(sx(x1)+6).toFixed(1)}" y="${sy(f(x1)).toFixed(1)}" font-size="13" font-weight="700"
+             fill="${color}">${label}</text>`;
+  };
+  line(D, 0, qMax, '#2b5c8a', 'D');
+  line(S, 0, qMax, '#b0432e', 'PMC');
+  line(SMC, 0, qMax, '#2f7a52', 'SMC');
+
+  return `<div class="diagram"><svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${g}</svg>
+    <div class="cap">Positive production externality: SMC lies below PMC by \\(t=${t}\\) per unit.</div></div>`;
+}
+
+/* ---- the 4 basic (unsubsidized-picture) regions, as used by question 1 */
+function extDiagram(ms, md, A, t, q1, P1, q2, P2, letters){
+  const regions = [
+    { pts: [[0,P1],[0,A],[q1,P1]], color: '#2b5c8a', label: letters.CS },
+    { pts: [[0,t],[0,P1],[q1,P1]], color: '#b0432e', label: letters.PS },
+    { pts: [[0,0],[0,t],[q1,P1],[q1,P1-t]], color: '#2f7a52', label: letters.EXT },
+    { pts: [[q1,P1],[q1,P1-t],[q2,P2]], color: '#5d6b7c', label: letters.DWL },
+  ];
+  return extDiagramBase(ms, md, A, t, q1, q2, q2 * 1.3, regions);
+}
+
+const QUESTIONS = [
+
+  /* ----- 1. Identify the welfare regions (match, diagram) -------------- */
+  {
+    key: 'regions',
+    name: 'Welfare regions',
+    eyebrow: 'CS, PS, external benefit, DWL',
+    gen(){
+      const [ms,md,A,t,q1,P1,q2,P2] = pick(EXT_POOL);
+      const letterList = shuffle(['a','b','c','d']);
+      const letters = { CS: letterList[0], PS: letterList[1], EXT: letterList[2], DWL: letterList[3] };
+      const diagram = extDiagram(ms, md, A, t, q1, P1, q2, P2, letters);
+      const promptHTML = `
+        <p>The market is unsubsidized, sitting at \\(q_1=${q1}\\), \\(P_1=${P1}\\). The efficient
+           (Pigouvian-subsidized) outcome is \\(q_2=${q2}\\), \\(P_2=${P2}\\).</p>
+        ${diagram}
+        <p>Match each welfare component to its shaded region.</p>`;
+      const rows = [
+        { left: 'Consumer surplus (at the unsubsidized quantity)', key: 'CS' },
+        { left: 'Producer surplus (at the unsubsidized quantity)', key: 'PS' },
+        { left: 'External benefit realized (at the unsubsidized quantity)', key: 'EXT' },
+        { left: 'Deadweight loss from under-producing', key: 'DWL' },
+      ];
+      const options = ['a','b','c','d'];
+      const matchRows = rows.map(r => ({ left: r.left, correct: options.indexOf(letters[r.key]) }));
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p><strong>CS</strong> is the standard triangle under \\(D\\) and above the price consumers pay
+           \\(P_1\\), from \\(0\\) to \\(q_1\\) — region <strong>${letters.CS}</strong>.</p>
+        <p><strong>PS</strong> is the triangle above \\(PMC\\) and below \\(P_1\\), from \\(0\\) to \\(q_1\\)
+           — region <strong>${letters.PS}</strong>.</p>
+        <p>The <strong>external benefit</strong> is the gap between \\(PMC\\) and \\(SMC\\) — a constant
+           \\(\\$${t}\\) per unit, since the two curves are parallel — over the \\(q_1\\) units actually
+           produced: a parallelogram of area \\(t\\times q_1\\), region <strong>${letters.EXT}</strong>.
+           It sits entirely on the <em>other</em> side of the \\(PMC\\) line from PS, so the two never
+           overlap.</p>
+        <p>The <strong>deadweight loss</strong> is the triangle between \\(D\\) (what the extra units
+           are worth) and \\(SMC\\) (what they truly cost society), from \\(q_1\\) to \\(q_2\\) —
+           region <strong>${letters.DWL}</strong>. It exists because the market stops at \\(q_1\\) instead
+           of the efficient \\(q_2\\), ignoring the external benefit those extra units would create.</p>`;
+      return { promptHTML, match: { rows: matchRows, options }, solutionHTML };
+    }
+  },
+
+  /* ----- 2. Derive both equilibria from first principles --------------- */
+  {
+    key: 'eqcalc',
+    name: 'Two equilibria',
+    eyebrow: '\\(D=PMC\\) vs. \\(D=SMC\\)',
+    gen(){
+      const [ms,md,A,t,q1,P1,q2,P2] = pick(EXT_POOL);
+      const msTxt = ms === 1 ? '' : String(ms);
+      const mdTxt = md === 1 ? '' : String(md);
+      const promptHTML = `
+        <p>Demand is \\(D(q)=${A}-${mdTxt}q\\). The social marginal cost of production is
+           \\(SMC(q)=${msTxt}q\\). Production also generates a constant external benefit of
+           \\(\\$${t}\\) per unit, so the private marginal cost (market supply) runs that much higher:
+           \\(PMC(q)=SMC(q)+${t}\\).</p>
+        <p>Find the unsubsidized market equilibrium \\((q_1,P_1)\\), where \\(D=PMC\\), and the efficient
+           equilibrium \\((q_2,P_2)\\), where \\(D=SMC\\).</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p><strong>Unsubsidized:</strong> set \\(D=PMC\\): \\(${A}-${mdTxt}q=${msTxt}q+${t}
+           \\ \\Rightarrow\\ ${A-t}=${ms+md}q\\ \\Rightarrow\\ q_1=${q1}\\). Then
+           \\(P_1=PMC(q_1)=${msTxt||1}(${q1})+${t}=\\mathbf{${P1}}\\).</p>
+        <p><strong>Efficient:</strong> set \\(D=SMC\\): \\(${A}-${mdTxt}q=${msTxt}q
+           \\ \\Rightarrow\\ ${A}=${ms+md}q\\ \\Rightarrow\\ q_2=${q2}\\). Then
+           \\(P_2=SMC(q_2)=${msTxt||1}(${q2})=\\mathbf{${P2}}\\).</p>
+        <p>Since the externality is a <em>benefit</em>, \\(SMC\\lt PMC\\) and the efficient quantity
+           \\(q_2=${q2}\\) is larger than the unsubsidized \\(q_1=${q1}\\): left alone, the market
+           under-produces.</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(q_1=\\)', answer: q1, tol: 0.01 },
+          { label: '\\(P_1=\\)', prefix: '$', answer: P1, tol: 0.01 },
+          { label: '\\(q_2=\\)', answer: q2, tol: 0.01 },
+          { label: '\\(P_2=\\)', prefix: '$', answer: P2, tol: 0.01 },
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 3. External benefit, subsidy cost, and DWL -------------------- */
+  {
+    key: 'welfarecalc',
+    name: 'Benefit, subsidy & DWL',
+    eyebrow: 'Areas from the diagram',
+    gen(){
+      const [ms,md,A,t,q1,P1,q2,P2,DWL,ext1,sub] = pick(EXT_POOL);
+      const promptHTML = `
+        <p>In this market, the unsubsidized equilibrium is \\(q_1=${q1}\\), \\(P_1=${P1}\\), and the
+           efficient (Pigouvian-subsidized) equilibrium is \\(q_2=${q2}\\), \\(P_2=${P2}\\). Every unit
+           produced generates a constant external benefit of \\(\\$${t}\\).</p>
+        <p>Find (a) the external benefit realized at the unsubsidized quantity \\(q_1\\), (b) the total
+           subsidy the government pays once the market reaches \\(q_2\\), and (c) the deadweight loss
+           from under-producing in the unsubsidized market.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>The gap between \\(PMC\\) and \\(SMC\\) is a constant \\(\\$${t}\\) per unit, so the external
+           benefit realized is just a rectangle: (benefit per unit) \\(\\times\\) (units produced).</p>
+        <p>(a) At \\(q_1=${q1}\\): \\(${t}\\times${q1}=\\mathbf{${ext1}}\\).</p>
+        <p>(b) A Pigouvian subsidy pays exactly the external benefit per unit, \\(\\$${t}\\), on every
+           unit produced. Once the subsidy pulls output to \\(q_2=${q2}\\): total cost
+           \\(=${t}\\times${q2}=\\mathbf{${sub}}\\).</p>
+        <p>(c) The DWL triangle runs from \\(q_1\\) to \\(q_2\\) (base \\(=${q2}-${q1}=${q2-q1}\\)) and from
+           \\(SMC(q_1)=P_1-${t}=${P1-t}\\) up to \\(D(q_1)=P_1=${P1}\\) (height \\(=${t}\\)):
+           \\(\\tfrac12\\times${q2-q1}\\times${t}=\\mathbf{${DWL}}\\).</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: 'External benefit at \\(q_1=\\)', prefix: '$', answer: ext1, tol: 0.01 },
+          { label: 'Total subsidy at \\(q_2=\\)', prefix: '$', answer: sub, tol: 0.01 },
+          { label: 'Deadweight loss \\(=\\)', prefix: '$', answer: DWL, tol: 0.01 },
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 4. CS and PS in the unsubsidized market ------------------------ */
+  {
+    key: 'csps',
+    name: 'CS & PS before the subsidy',
+    eyebrow: 'Triangle areas',
+    gen(){
+      const [ms,md,A,t,q1,P1,,,,,,CS,PS] = pick(EXT_POOL);
+      const msTxt = ms === 1 ? '' : String(ms);
+      const mdTxt = md === 1 ? '' : String(md);
+      const promptHTML = `
+        <p>Demand is \\(D(q)=${A}-${mdTxt}q\\) and private marginal cost is
+           \\(PMC(q)=${msTxt}q+${t}\\). The unsubsidized market clears at \\(q_1=${q1}\\),
+           \\(P_1=${P1}\\).</p>
+        <p>Find consumer surplus and producer surplus at this (unsubsidized) equilibrium.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>\\(CS\\) is the triangle between \\(D\\) and the price \\(P_1\\), from \\(0\\) to \\(q_1\\).
+           The vertical side has length \\(D(0)-P_1=${A}-${P1}=${A-P1}\\), so
+           \\(CS=\\tfrac12(${A-P1})(${q1})=\\mathbf{${CS}}\\).</p>
+        <p>\\(PS\\) is the triangle between \\(P_1\\) and \\(PMC\\), from \\(0\\) to \\(q_1\\). Since
+           \\(PMC(0)=${t}\\), the vertical side is \\(P_1-${t}=${P1-t}\\), so
+           \\(PS=\\tfrac12(${P1-t})(${q1})=\\mathbf{${PS}}\\).</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(CS=\\)', prefix: '$', answer: CS, tol: 0.01 },
+          { label: '\\(PS=\\)', prefix: '$', answer: PS, tol: 0.01 },
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 5. Decompose CS after the subsidy (multi-select, new diagram) - */
+  {
+    key: 'csafter',
+    name: 'Consumer surplus after the subsidy',
+    eyebrow: 'Decompose \\(CS_{new}\\)',
+    gen(){
+      const [ms,md,A,t,q1,P1,q2,P2] = pick(EXT_POOL);
+      const labels = shuffle(['w','x','y','z']);
+      const [lCS, lF, lD1, lD2] = labels;
+      const regions = [
+        { pts: [[0,P1],[0,A],[q1,P1]], color: '#2b5c8a', label: lCS },        // CS_old
+        { pts: [[0,P2],[0,P1],[q1,P1],[q1,P2]], color: '#7c5cb0', label: lF }, // rectangle: price-drop gain
+        { pts: [[q1,P1],[q1,P2],[q2,P2]], color: '#c98a2e', label: lD1 },      // upper DWL split (new CS)
+        { pts: [[q1,P2],[q1,P1-t],[q2,P2]], color: '#5d6b7c', label: lD2 },    // lower DWL split (not CS)
+      ];
+      const diagram = extDiagramBase(ms, md, A, t, q1, q2, q2 * 1.3, regions);
+      const promptHTML = `
+        <p>The subsidy pulls the market from \\(q_1=${q1}\\) (price \\(P_1=${P1}\\)) out to
+           \\(q_2=${q2}\\) (price \\(P_2=${P2}\\)).</p>
+        ${diagram}
+        <p>Select <strong>all</strong> regions whose combined area equals total consumer surplus once
+           the market reaches \\(q_2\\).</p>`;
+      const options = labels;
+      const correct = [labels.indexOf(lCS), labels.indexOf(lF), labels.indexOf(lD1)].sort((a,b)=>a-b);
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>\\(CS_{new}\\) is everything under \\(D\\) and above the new (lower) price \\(P_2\\), from
+           \\(0\\) to \\(q_2\\). Split at \\(q_1\\) and at the old price \\(P_1\\), that's three pieces:
+           the original consumer surplus (<strong>${lCS}</strong>), the extra surplus existing buyers get
+           from the price falling \\(P_1\\to P_2\\) on the \\(q_1\\) units they were already buying
+           (<strong>${lF}</strong>, a rectangle), and the surplus new buyers get on the extra
+           \\(q_1\\to q_2\\) units (<strong>${lD1}</strong>, a triangle).</p>
+        <p>Region <strong>${lD2}</strong> sits <em>below</em> \\(P_2\\), between \\(P_2\\) and \\(SMC(q_1)\\)
+           — it's part of what producers/the subsidy pick up on those extra units, not part of consumer
+           surplus, so it's excluded.</p>`;
+      return { promptHTML, multi: { options, correct }, solutionHTML };
+    }
+  },
+
+  /* ----- 6. Decompose PS after the subsidy (multi-select, new diagram) - */
+  {
+    key: 'psafter',
+    name: 'Producer surplus after the subsidy',
+    eyebrow: 'Decompose \\(PS_{new}\\)',
+    gen(){
+      const [ms,md,A,t,q1,P1,q2,P2] = pick(EXT_POOL);
+      const labels = shuffle(['w','x','y','z']);
+      const [lPS, lG, lH, lDistract] = labels;
+      const regions = [
+        { pts: [[0,t],[0,P1],[q1,P1]], color: '#b0432e', label: lPS },                  // PS_old
+        { pts: [[0,P1],[0,P2+t],[q1,P2+t],[q1,P1]], color: '#2e8f8f', label: lG },      // rectangle: extra margin, old units
+        { pts: [[q1,P1],[q1,P2+t],[q2,P2+t]], color: '#c98a2e', label: lH },            // triangle: margin on new units
+        { pts: [[q1,P1],[q1,P2],[q2,P2]], color: '#5d6b7c', label: lDistract },         // distractor: upper DWL split (belongs to CS, not PS)
+      ];
+      const diagram = extDiagramBase(ms, md, A, t, q1, q2, q2 * 1.3, regions);
+      const promptHTML = `
+        <p>Same subsidized market: \\(q_1=${q1}\\), \\(P_1=${P1}\\), \\(q_2=${q2}\\), \\(P_2=${P2}\\), with
+           external benefit \\(t=${t}\\) per unit (so producers effectively receive
+           \\(PMC(q_2)=P_2+t=${P2+t}\\) once the subsidy is in place).</p>
+        ${diagram}
+        <p>Select <strong>all</strong> regions whose combined area equals total producer surplus once
+           the market reaches \\(q_2\\).</p>`;
+      const options = labels;
+      const correct = [labels.indexOf(lPS), labels.indexOf(lG), labels.indexOf(lH)].sort((a,b)=>a-b);
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>\\(PS_{new}\\) is everything above \\(PMC\\) and below the price producers now receive,
+           \\(P_2+t=${P2+t}\\), from \\(0\\) to \\(q_2\\). That splits into: the original producer surplus
+           (<strong>${lPS}</strong>), the extra margin on the original \\(q_1\\) units now that the
+           effective price is higher (<strong>${lG}</strong>, a rectangle), and the margin earned on the
+           new \\(q_1\\to q_2\\) units (<strong>${lH}</strong>, a triangle).</p>
+        <p>Region <strong>${lDistract}</strong> is bounded by \\(D\\), not \\(PMC\\) — it's part of the
+           consumer side of the picture (from the previous question), not producer surplus, so it's
+           excluded here.</p>`;
+      return { promptHTML, multi: { options, correct }, solutionHTML };
+    }
+  },
+
+  /* ----- 7. Verify the welfare identity CS_new+PS_new = Welfare_old+DWL - */
+  {
+    key: 'welfareid',
+    name: 'A welfare identity',
+    eyebrow: 'Why the subsidy nets out',
+    gen(){
+      const [ms,md,A,t,q1,P1,q2,P2,DWL,ext1] = pick(EXT_POOL);
+      const CSnew = (A - P2) * q2 / 2;
+      const PSnew = P2 * q2 / 2;
+      const CSold = (A - P1) * q1 / 2;
+      const PSold = (P1 - t) * q1 / 2;
+      const welfareOld = CSold + PSold + ext1;
+      const promptHTML = `
+        <p>For this market (\\(q_1=${q1}\\), \\(P_1=${P1}\\), \\(q_2=${q2}\\), \\(P_2=${P2}\\),
+           \\(t=${t}\\)), find \\(CS_{new}\\) and \\(PS_{new}\\) directly (each is a single triangle), then
+           check that \\(CS_{new}+PS_{new}\\) equals the unsubsidized welfare (\\(CS+PS+\\)external
+           benefit) plus the deadweight loss it recovers.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>\\(CS_{new}=\\tfrac12(${A}-${P2})(${q2})=\\mathbf{${CSnew}}\\) (triangle under \\(D\\), above
+           \\(P_2\\), \\(0\\) to \\(q_2\\)).</p>
+        <p>\\(PS_{new}=\\tfrac12(${P2+t}-${t})(${q2})=\\tfrac12(${P2})(${q2})=\\mathbf{${PSnew}}\\) (triangle
+           above \\(PMC\\), below the received price \\(P_2+t\\), \\(0\\) to \\(q_2\\)).</p>
+        <p>\\(CS_{new}+PS_{new}=${CSnew}+${PSnew}=${CSnew+PSnew}\\). Compare to
+           \\(\\text{Welfare}_{old}+DWL=(${CSold}+${PSold}+${ext1})+${DWL}=${welfareOld}+${DWL}=${welfareOld+DWL}\\)
+           — they match.</p>
+        <p>Why? The subsidy transfers \\(\\$t\\) per unit from the government to producers (a pure cost to
+           the government), while production simultaneously creates \\(\\$t\\) per unit of external benefit
+           for third parties (a pure gain to society). Sized the Pigouvian way, these two \\(t\\times q_2\\)
+           amounts are numerically identical and cancel out of the <em>aggregate</em> welfare count —
+           even though they matter enormously for <em>who</em> gains what. What's left, \\(CS_{new}+PS_{new}\\),
+           is exactly the full efficient surplus: the old welfare plus the deadweight loss the subsidy
+           recovers.</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(CS_{new}=\\)', prefix: '$', answer: CSnew, tol: 0.01 },
+          { label: '\\(PS_{new}=\\)', prefix: '$', answer: PSnew, tol: 0.01 },
+          { label: '\\(CS_{new}+PS_{new}=\\)', prefix: '$', answer: CSnew + PSnew, tol: 0.01 },
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 8. A mis-sized subsidy: comparative statics ---------------------- */
+  {
+    key: 'wrongsize',
+    name: 'A mis-sized subsidy',
+    eyebrow: 'What if \\(s\\ne t\\)?',
+    gen(){
+      const [ms,md,A,t,q1,P1,q2,P2,DWLorig] = pick(EXT_POOL);
+      const S = ms + md;
+      const under = (t - S > 0) && Math.random() < 0.5;
+      const s = under ? t - S : t + S;
+      const qs = (A - t + s) / S;
+      const DWLnew = (t - s) * (t - s) / (2 * S);
+      const msTxt = ms === 1 ? '' : String(ms), mdTxt = md === 1 ? '' : String(md);
+      const promptHTML = `
+        <p>Same market: \\(D(q)=${A}-${mdTxt}q\\), \\(SMC(q)=${msTxt}q\\), true external benefit
+           \\(t=${t}\\) per unit (so \\(PMC(q)=SMC(q)+${t}\\)). The efficient quantity is
+           \\(q_2=${q2}\\).</p>
+        <p>Suppose the government instead sets a per-unit subsidy of \\(s=${s}\\)
+           (${under ? 'too small' : 'too large'}) rather than the correct \\(t=${t}\\). With this subsidy,
+           the effective supply curve is \\(PMC(q)-s\\).</p>
+        <p>Find the resulting quantity, say whether the market now over- or under-produces relative to
+           \\(q_2\\), and find the new deadweight loss.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Set \\(D=PMC-s\\): \\(${A}-${mdTxt}q=${msTxt}q+${t}-${s}
+           \\Rightarrow ${A-t+s}=${S}q\\Rightarrow q=\\mathbf{${qs}}\\).</p>
+        <p>Since \\(q_2=${q2}\\), the market now
+           ${qs < q2 ? `<strong>under</strong>-produces (\\(${qs}\\lt ${q2}\\))` : qs > q2 ? `<strong>over</strong>-produces (\\(${qs}\\gt ${q2}\\))` : 'hits the efficient quantity exactly'}.
+           ${under ? 'A too-small subsidy leaves part of the original gap uncorrected.' : 'A too-large subsidy overshoots: it now pays people to produce units whose true social cost exceeds their value.'}</p>
+        <p>Whenever the subsidy misses \\(t\\) by an amount \\(d=|t-s|\\), the resulting quantity misses
+           \\(q_2\\) by \\(d\\) divided by the combined slope of demand and \\(SMC\\) (here,
+           \\(${S}\\)), and the new deadweight loss is a triangle of exactly
+           \\(DWL(s)=\\dfrac{(t-s)^2}{2\\times ${S}}\\): here,
+           \\(\\dfrac{(${t}-${s})^2}{2(${S})}=\\dfrac{${(t-s)*(t-s)}}{${2*S}}=\\mathbf{${DWLnew}}\\).
+           This is smallest (zero) exactly at \\(s=t\\) — confirming the Pigouvian subsidy is the
+           <em>unique</em> welfare-maximizing choice, not just <em>a</em> good one.</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: 'New \\(q=\\)', answer: qs, tol: 0.01 },
+          { type: 'text', label: 'Relative to \\(q_2\\), the market now:', accept: qs < q2 ? ['under-produces','underproduces'] : qs > q2 ? ['over-produces','overproduces'] : ['neither','matches'] },
+          { label: 'New \\(DWL=\\)', prefix: '$', answer: DWLnew, tol: 0.01 },
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 9. Conceptual: effects of the Pigouvian subsidy (multi) ------- */
+  {
+    key: 'concept',
+    name: 'Effects of the subsidy',
+    eyebrow: 'Positive externality \u2192 subsidy',
+    gen(){
+      const statements = [
+        { t: 'The equilibrium quantity rises toward the efficient level', v: true },
+        { t: 'The price consumers pay falls', v: true },
+        { t: 'The effective price producers receive (price plus subsidy) rises above the original market price', v: true },
+        { t: 'The deadweight loss from under-production is eliminated', v: true },
+        { t: 'The externality itself is eliminated \u2014 production no longer creates any spillover benefit', v: false },
+        { t: 'The subsidized market produces more than the efficient quantity \\(q_2\\)', v: false },
+        { t: 'The subsidy is paid by producers to the government', v: false },
+      ];
+      const order = shuffle(statements);
+      const correct = order.map((s,i) => s.v ? i : -1).filter(i => i >= 0);
+      const promptHTML = `
+        <p>A positive production externality is corrected with a per-unit Pigouvian subsidy sized to
+           close the gap between \\(PMC\\) and \\(SMC\\). Select <strong>all</strong> statements that are
+           true.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>The subsidy shifts the price producers effectively receive up to \\(PMC(q_2)\\), which is
+           <em>above</em> the original market price \\(P_1\\) (since \\(PMC\\) is increasing and
+           \\(q_2\\gt q_1\\)) — it doesn't just restore the old price, it pushes output further.
+           Consumers, meanwhile, pay the lower price \\(P_2=SMC(q_2)\\). Output rises to the efficient
+           \\(q_2\\) exactly (not beyond), which is precisely where the DWL triangle closes to zero.</p>
+        <p>What the subsidy does <em>not</em> do is remove the externality itself — the spillover
+           benefit is still generated per unit; the subsidy just makes producers' private incentives
+           reflect it. And it's the government paying producers, not the reverse.</p>`;
+      return {
+        promptHTML,
+        multi: { options: order.map(s => s.t), correct },
+        solutionHTML
+      };
+    }
+  },
+
+];
+
+/* ---- Startup ----
+   Primary path: MathJax's pageReady hook calls boot() once math is ready.
+   Fallback: if MathJax can't load (offline), still show questions after 3s. */
+let booted = false;
+function boot(){ if (booted) return; booted = true; buildTopics(); newProblem(); }
+setTimeout(() => { if (!booted) boot(); }, 3000);
+</script>
+</body>
+</html>

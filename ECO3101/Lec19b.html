@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  ECO 3101 — Interactive practice page.  Self-contained: one HTML file.
+  No installation, no server. Double-click to open; drop into a GitHub repo
+  to publish for students.
+
+  HOW IT'S ORGANIZED (for editing later):
+  - All the math/questions live in the QUESTIONS array near the bottom of the
+    <script>. Each entry is one "problem type." To change the random ranges,
+    edit the numbers inside its gen() function — look for "EDIT NUMBERS HERE".
+  - To add a new problem type, copy one block and adjust it.
+  - The look (colors/fonts) is in the <style> block; you can ignore it.
+  ============================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lecture 19b Exercises — Intermediate Microeconomics</title>
+
+<!-- Fonts: IBM Plex family (academic/technical feel) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- MathJax: renders the LaTeX math. Loads from a CDN; needs internet.
+     We boot the app from MathJax's pageReady hook (see config below). -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(', '\\)'], ['$', '$']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+    svg: { fontCache: 'global' },
+    startup: {
+      typeset: false,
+      pageReady: () => MathJax.startup.defaultPageReady().then(() => boot())
+    }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+
+<style>
+  :root{
+    --paper:#eef1f5;        /* page background (cool soft white) */
+    --grid:#e0e5ec;         /* faint graph-paper lines */
+    --card:#ffffff;
+    --ink:#17263a;          /* primary text: deep slate-navy */
+    --muted:#5d6b7c;        /* secondary text */
+    --line:#dde3ea;         /* hairlines / borders */
+    --accent:#2b5c8a;       /* scholarly blue */
+    --accent-d:#1f456a;
+    --success:#2f7a52;
+    --success-bg:#eaf4ee;
+    --error:#b0432e;
+    --error-bg:#f7ece9;
+    --shadow:0 1px 2px rgba(23,38,58,.05), 0 12px 30px rgba(23,38,58,.07);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    color:var(--ink);
+    background-color:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:26px 26px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{ max-width:740px; margin:0 auto; padding:40px 20px 80px; }
+
+  /* ---- Header ---- */
+  .kicker{
+    font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.13em;
+    color:var(--accent); margin:0 0 10px;
+  }
+  header{ display:flex; align-items:center; gap:14px; margin-bottom:6px; }
+  .mark{ flex:0 0 auto; }
+  .mark svg{ display:block; }
+  h1{
+    font-family:'IBM Plex Serif', Georgia, serif;
+    font-weight:600; font-size:1.7rem; margin:0; letter-spacing:.01em;
+  }
+  .sub{ color:var(--muted); margin:.4em 0 26px; font-size:1rem; }
+
+  /* ---- Topic selector ---- */
+  .topics{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+  .topic{
+    font:500 .85rem/1 'IBM Plex Sans', sans-serif;
+    color:var(--muted); background:var(--card);
+    border:1px solid var(--line); border-radius:999px;
+    padding:8px 15px; cursor:pointer; transition:all .15s ease;
+  }
+  .topic:hover{ border-color:var(--accent); color:var(--accent); }
+  .topic.active{
+    background:var(--accent); border-color:var(--accent);
+    color:#fff; box-shadow:0 4px 12px rgba(43,92,138,.22);
+  }
+
+  /* ---- Card ---- */
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:26px 26px 22px; box-shadow:var(--shadow);
+  }
+  .eyebrow{
+    font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.1em; color:var(--accent);
+    margin-bottom:12px; display:flex; align-items:center; gap:8px;
+  }
+  .prompt{ font-size:1.05rem; }
+  .prompt p{ margin:.5em 0; }
+  .prompt .hint{
+    color:var(--muted); font-size:.92rem;
+    border-left:3px solid var(--line); padding-left:12px; margin-top:14px;
+  }
+
+  /* ---- Answer fields ---- */
+  .answers{ margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+  .field{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .field label{ font-size:.95rem; color:var(--ink); min-width:0; }
+  .field .inputwrap{ display:inline-flex; align-items:center; gap:6px; }
+  .field .prefix{ color:var(--muted); font-family:'IBM Plex Mono', monospace; }
+  .field input{
+    width:130px; font:500 1rem 'IBM Plex Mono', monospace;
+    color:var(--ink); background:var(--paper);
+    border:1.5px solid var(--line); border-radius:9px; padding:9px 11px;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .field input:focus{ outline:none; border-color:var(--accent); background:#fff; }
+  .field .unit{ color:var(--muted); font-size:.9rem; }
+  .field.ok input{ border-color:var(--success); background:var(--success-bg); }
+  .field.no input{ border-color:var(--error); background:var(--error-bg); }
+  .field .tag{
+    font:600 .68rem/1 'IBM Plex Mono', monospace; text-transform:uppercase;
+    letter-spacing:.06em; padding:3px 7px; border-radius:6px; opacity:0;
+  }
+  .field.ok .tag{ opacity:1; color:var(--success); background:var(--success-bg); }
+  .field.no .tag{ opacity:1; color:var(--error); background:var(--error-bg); }
+
+  /* ---- Multiple choice ---- */
+  .choices{ margin-top:20px; display:flex; flex-direction:column; gap:10px; }
+  .choice{
+    text-align:left; font:500 1rem 'IBM Plex Sans', sans-serif; color:var(--ink);
+    background:var(--paper); border:1.5px solid var(--line); border-radius:11px;
+    padding:13px 16px; cursor:pointer; transition:all .13s ease;
+    display:flex; align-items:center; gap:12px;
+  }
+  .choice:hover{ border-color:var(--accent); }
+  .choice .bullet{
+    flex:0 0 auto; width:22px; height:22px; border-radius:50%;
+    border:1.5px solid var(--line); display:inline-flex; align-items:center;
+    justify-content:center; font:600 .8rem 'IBM Plex Mono', monospace; color:var(--muted);
+  }
+  .choice.sel{ border-color:var(--accent); background:#fff; box-shadow:0 3px 10px rgba(43,92,138,.14); }
+  .choice.sel .bullet{ border-color:var(--accent); color:var(--accent); }
+  .choice.ok{ border-color:var(--success); background:var(--success-bg); }
+  .choice.ok .bullet{ border-color:var(--success); color:var(--success); background:#fff; }
+  .choice.no{ border-color:var(--error); background:var(--error-bg); }
+  .choice.no .bullet{ border-color:var(--error); color:var(--error); background:#fff; }
+
+  /* ---- Multi-select (checkbox) ---- */
+  .choice .box{
+    flex:0 0 auto; width:21px; height:21px; border-radius:6px;
+    border:1.5px solid var(--line); display:inline-flex; align-items:center;
+    justify-content:center; background:#fff;
+  }
+  .choice .box svg{ width:13px; height:13px; opacity:0; }
+  .choice.sel .box{ border-color:var(--accent); background:var(--accent); }
+  .choice.sel .box svg{ opacity:1; }
+  .choice.ok .box{ border-color:var(--success); background:var(--success); }
+  .choice.ok .box svg{ opacity:1; }
+  .choice.no .box{ border-color:var(--error); background:var(--error); }
+  .choice.no .box svg{ opacity:1; }
+
+  /* ---- Matching ---- */
+  .matchrows{ margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+  .matchrow{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .matchrow .ml{ flex:1 1 250px; font-size:.98rem; }
+  .matchrow select{
+    font:500 .95rem 'IBM Plex Sans',sans-serif; color:var(--ink); background:var(--paper);
+    border:1.5px solid var(--line); border-radius:9px; padding:9px 11px; min-width:190px; cursor:pointer;
+  }
+  .matchrow select:focus{ outline:none; border-color:var(--accent); background:#fff; }
+  .matchrow.ok select{ border-color:var(--success); background:var(--success-bg); }
+  .matchrow.no select{ border-color:var(--error); background:var(--error-bg); }
+  .matchrow .tag{ font:600 .68rem/1 'IBM Plex Mono',monospace; text-transform:uppercase;
+    letter-spacing:.06em; padding:3px 7px; border-radius:6px; opacity:0; }
+  .matchrow.ok .tag{ opacity:1; color:var(--success); background:var(--success-bg); }
+  .matchrow.no .tag{ opacity:1; color:var(--error); background:var(--error-bg); }
+
+  /* ---- Diagram ---- */
+  .diagram{ margin:18px 0 6px; text-align:center; }
+  .diagram svg{ max-width:100%; height:auto; background:#fff;
+    border:1px solid var(--line); border-radius:10px; }
+  .diagram .cap{ color:var(--muted); font-size:.85rem; margin-top:6px; }
+
+  /* ---- Data table (cost / schedule tables in prompts) ---- */
+  .costtable{
+    border-collapse:collapse; margin:16px auto; background:#fff;
+    font:500 .95rem 'IBM Plex Mono',monospace; min-width:280px;
+  }
+  .costtable th, .costtable td{
+    border:1px solid var(--line); padding:7px 16px; text-align:right;
+  }
+  .costtable th{
+    background:var(--paper); font:600 .8rem 'IBM Plex Sans',sans-serif;
+    text-transform:uppercase; letter-spacing:.05em; color:var(--muted);
+  }
+
+  /* ---- Actions ---- */
+  .actions{ display:flex; align-items:center; gap:10px; margin-top:22px; flex-wrap:wrap; }
+  .btn{
+    font:600 .92rem 'IBM Plex Sans', sans-serif; cursor:pointer;
+    border-radius:10px; padding:11px 18px; border:1.5px solid transparent;
+    transition:all .15s ease;
+  }
+  .btn-primary{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .btn-primary:hover{ background:var(--accent-d); border-color:var(--accent-d); }
+  .btn-ghost{ background:#fff; color:var(--accent); border-color:var(--line); }
+  .btn-ghost:hover{ border-color:var(--accent); }
+  .btn-text{
+    background:none; border:none; cursor:pointer; color:var(--muted);
+    font:500 .9rem 'IBM Plex Sans', sans-serif; text-decoration:underline;
+    text-underline-offset:3px; padding:6px 4px;
+  }
+  .btn-text:hover{ color:var(--accent); }
+  .spacer{ flex:1 1 auto; }
+  .score{ font:500 .85rem 'IBM Plex Mono', monospace; color:var(--muted); }
+
+  /* ---- Feedback + solution ---- */
+  .feedback{ margin-top:16px; font-weight:500; font-size:.96rem; display:none; }
+  .feedback.show{ display:block; }
+  .feedback.good{ color:var(--success); }
+  .feedback.bad{ color:var(--error); }
+  .solution{
+    display:none; margin-top:14px; padding:16px 18px;
+    background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    font-size:.95rem;
+  }
+  .solution.show{ display:block; }
+  .solution h4{
+    margin:0 0 8px; font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.08em; color:var(--muted);
+  }
+  .solution p{ margin:.4em 0; }
+
+  footer{ margin-top:30px; color:var(--muted); font-size:.82rem; text-align:center; line-height:1.6; }
+  footer a{ color:var(--accent); text-decoration:none; }
+  footer a:hover{ text-decoration:underline; }
+
+  @media (max-width:520px){
+    .wrap{ padding:26px 14px 60px; }
+    .actions{ gap:8px; }
+    .spacer{ flex-basis:100%; height:0; }
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .card{ animation:rise .25s ease both; }
+    @keyframes rise{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">ECO 3101 · Stackelberg Competition</p>
+  <header>
+    <span class="mark" aria-hidden="true">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+        <path d="M5 29V5M5 29h24" stroke="#2b5c8a" stroke-width="2" stroke-linecap="round"/>
+        <path d="M6 24C12 24 13 9 28 8" stroke="#17263a" stroke-width="2" stroke-linecap="round" fill="none"/>
+      </svg>
+    </span>
+    <h1>Lecture 19b Exercises</h1>
+  </header>
+  <p class="sub">Intermediate Microeconomic Theory. Fresh numbers every time — work it out, type your answer, check yourself.</p>
+
+  <div class="topics" id="topics" role="group" aria-label="Choose a problem type"></div>
+
+  <div class="card" id="card">
+    <div class="eyebrow"><span id="eyebrow">—</span></div>
+    <div class="prompt" id="prompt"></div>
+
+    <div class="answers" id="answers"></div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="check">Check answer</button>
+      <button class="btn btn-ghost" id="next">New question</button>
+      <button class="btn-text" id="steps">Show steps</button>
+      <span class="spacer"></span>
+      <span class="score" id="score">Solved 0</span>
+    </div>
+
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <div class="solution" id="solution"></div>
+  </div>
+
+  <footer>
+    Ungraded self-practice — reload for a fresh set.<br>
+    Built for <strong>ECO 3101</strong> at Florida State University.<br>
+    Found an error, or have a correction or suggestion? Email
+    <a href="mailto:your-email@fsu.edu">your-email@fsu.edu</a>.
+  </footer>
+</div>
+
+<script>
+/* ============================ small helpers ============================ */
+const $ = (id) => document.getElementById(id);
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const randint = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+function shuffle(a){ a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const round = (x, d=6) => { const f = 10**d; return Math.round((x + Number.EPSILON) * f) / f; };
+const comma = (x) => x.toLocaleString('en-US');
+function parseNum(s){
+  if (s == null) return null;
+  s = String(s).trim().replace(/,/g,'').replace(/\s+/g,'');
+  if (s === '') return null;
+  // allow simple fractions like -3/4
+  const frac = s.match(/^(-?\d*\.?\d+)\/(-?\d*\.?\d+)$/);
+  if (frac){ const d = parseFloat(frac[2]); if (d === 0) return null; return parseFloat(frac[1]) / d; }
+  const v = Number(s);
+  return Number.isFinite(v) ? v : null;
+}
+function normTxt(s){
+  return String(s == null ? '' : s).toLowerCase()
+    .replace(/\s+/g,'').replace(/[*·×]/g,'').replace(/\\cdot/g,'')
+    .replace(/\^/g,'').replace(/\{|\}/g,'');
+}
+function typeset(){ if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); }
+
+/* ============================ state / engine ============================ */
+let current = 0;      // index into QUESTIONS
+let problem = null;   // the generated instance
+let solvedCount = 0;
+let mcPick = null;    // selected choice index for MC questions
+let multiPick = new Set(); // selected indices for multi-select questions
+
+function buildTopics(){
+  const box = $('topics');
+  box.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const b = document.createElement('button');
+    b.className = 'topic' + (i === current ? ' active' : '');
+    b.textContent = q.name;
+    b.addEventListener('click', () => { current = i; syncTopics(); newProblem(); });
+    box.appendChild(b);
+  });
+}
+function syncTopics(){
+  [...$('topics').children].forEach((b, i) => b.classList.toggle('active', i === current));
+}
+
+function newProblem(){
+  problem = QUESTIONS[current].gen();
+  mcPick = null;
+  multiPick = new Set();
+  $('eyebrow').textContent = QUESTIONS[current].eyebrow || QUESTIONS[current].name;
+  $('prompt').innerHTML = problem.promptHTML;
+
+  const wrap = $('answers');
+  wrap.innerHTML = '';
+
+  if (problem.mc){
+    // multiple-choice rendering
+    const list = document.createElement('div');
+    list.className = 'choices';
+    problem.mc.options.forEach((opt, i) => {
+      const c = document.createElement('button');
+      c.className = 'choice';
+      c.dataset.idx = i;
+      c.innerHTML = `<span class="bullet">${String.fromCharCode(65+i)}</span><span>${opt}</span>`;
+      c.addEventListener('click', () => {
+        mcPick = i;
+        [...list.children].forEach(ch => ch.classList.remove('sel','ok','no'));
+        c.classList.add('sel');
+      });
+      list.appendChild(c);
+    });
+    wrap.appendChild(list);
+  } else if (problem.multi){
+    // multiple-answers (checkbox) rendering
+    const list = document.createElement('div');
+    list.className = 'choices';
+    problem.multi.options.forEach((opt, i) => {
+      const c = document.createElement('button');
+      c.className = 'choice';
+      c.dataset.idx = i;
+      c.innerHTML = `<span class="box"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.2 3.2L13 4.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>${opt}</span>`;
+      c.addEventListener('click', () => {
+        if (multiPick.has(i)) multiPick.delete(i); else multiPick.add(i);
+        c.classList.toggle('sel', multiPick.has(i));
+        c.classList.remove('ok','no');
+      });
+      list.appendChild(c);
+    });
+    wrap.appendChild(list);
+  } else if (problem.match){
+    // matching rendering (each row: statement + a <select> of labels)
+    const box = document.createElement('div');
+    box.className = 'matchrows';
+    const optionsHTML = ['<option value="">\u2014 choose \u2014</option>']
+      .concat(problem.match.options.map((o,j) => `<option value="${j}">${o}</option>`)).join('');
+    problem.match.rows.forEach((row, i) => {
+      const r = document.createElement('div');
+      r.className = 'matchrow';
+      r.dataset.idx = i;
+      r.innerHTML = `<span class="ml">${row.left}</span><select data-idx="${i}">${optionsHTML}</select><span class="tag"></span>`;
+      box.appendChild(r);
+    });
+    wrap.appendChild(box);
+  } else {
+    // input-field rendering (numeric or text parts)
+    problem.parts.forEach((part, idx) => {
+      const field = document.createElement('div');
+      field.className = 'field';
+      field.innerHTML = `
+        <label>${part.label}</label>
+        <span class="inputwrap">
+          ${part.prefix ? `<span class="prefix">${part.prefix}</span>` : ''}
+          <input type="text" inputmode="${part.type === 'text' ? 'text' : 'decimal'}"
+                 autocomplete="off" data-idx="${idx}" placeholder="${part.placeholder || '?'}">
+          ${part.unit ? `<span class="unit">${part.unit}</span>` : ''}
+        </span>
+        <span class="tag"></span>`;
+      wrap.appendChild(field);
+    });
+  }
+
+  $('feedback').className = 'feedback';
+  $('feedback').textContent = '';
+  $('solution').className = 'solution';
+  $('solution').innerHTML = problem.solutionHTML;
+
+  typeset();
+  const first = wrap.querySelector('input');
+  if (first) first.focus();
+}
+
+function checkAnswers(){
+  const fb = $('feedback');
+
+  if (problem.mc){
+    const list = $('answers').querySelector('.choices');
+    if (mcPick == null){
+      fb.className = 'feedback show bad';
+      fb.textContent = 'Select an option first.';
+      return;
+    }
+    const correct = problem.mc.correct;
+    [...list.children].forEach((ch, i) => {
+      ch.classList.remove('sel','ok','no');
+      if (i === correct) ch.classList.add('ok');
+      else if (i === mcPick) ch.classList.add('no');
+    });
+    fb.className = 'feedback show';
+    if (mcPick === correct){
+      fb.classList.add('good'); fb.textContent = '\u2713 Correct.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite — the highlighted option is correct. See the steps below.';
+    }
+    return;
+  }
+
+  if (problem.multi){
+    const list = $('answers').querySelector('.choices');
+    if (multiPick.size === 0){
+      fb.className = 'feedback show bad';
+      fb.textContent = 'Select at least one option (or as many as apply).';
+      return;
+    }
+    const correct = new Set(problem.multi.correct);
+    const ok = correct.size === multiPick.size && [...correct].every(i => multiPick.has(i));
+    [...list.children].forEach((ch, i) => {
+      ch.classList.remove('sel','ok','no');
+      if (correct.has(i)) ch.classList.add('ok');
+      else if (multiPick.has(i)) ch.classList.add('no');
+    });
+    fb.className = 'feedback show';
+    if (ok){
+      fb.classList.add('good'); fb.textContent = '\u2713 Correct.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite \u2014 the correct set is highlighted green. See the steps below.';
+    }
+    return;
+  }
+
+  if (problem.match){
+    const rows = [...$('answers').querySelectorAll('.matchrow')];
+    let all = true, blank = false;
+    rows.forEach(r => {
+      const i = +r.dataset.idx;
+      const sel = r.querySelector('select');
+      const tag = r.querySelector('.tag');
+      r.classList.remove('ok','no');
+      if (sel.value === ''){ blank = true; all = false; if(tag) tag.textContent=''; return; }
+      if (+sel.value === problem.match.rows[i].correct){ r.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { r.classList.add('no'); if(tag) tag.textContent='try again'; all = false; }
+    });
+    fb.className = 'feedback show';
+    if (blank){ fb.classList.add('bad'); fb.textContent = 'Match every row before checking.'; }
+    else if (all){
+      fb.classList.add('good'); fb.textContent = '\u2713 All matched correctly.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite \u2014 the green rows are right; fix the others or peek at the steps.';
+    }
+    return;
+  }
+
+  const inputs = [...$('answers').querySelectorAll('input')];
+  let allCorrect = true, anyBlank = false;
+
+  inputs.forEach(inp => {
+    const idx = +inp.dataset.idx;
+    const part = problem.parts[idx];
+    const field = inp.closest('.field');
+    const tag = field.querySelector('.tag');
+    field.classList.remove('ok', 'no');
+
+    if (part.type === 'text'){
+      const raw = inp.value.trim();
+      if (raw === ''){ anyBlank = true; allCorrect = false; if(tag) tag.textContent=''; return; }
+      const got = normTxt(raw);
+      const ok = part.accept.map(normTxt).includes(got);
+      if (ok){ field.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { field.classList.add('no'); if(tag) tag.textContent='try again'; allCorrect = false; }
+    } else {
+      const val = parseNum(inp.value);
+      if (val === null){ anyBlank = true; allCorrect = false; if(tag) tag.textContent=''; return; }
+      if (Math.abs(val - part.answer) <= (part.tol ?? 0.01)){ field.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { field.classList.add('no'); if(tag) tag.textContent='try again'; allCorrect = false; }
+    }
+  });
+
+  fb.className = 'feedback show';
+  if (anyBlank){
+    fb.classList.add('bad');
+    fb.textContent = 'Enter an answer in each blank.';
+  } else if (allCorrect){
+    fb.classList.add('good');
+    fb.textContent = inputs.length > 1 ? '\u2713 All correct — nice work.' : '\u2713 Correct.';
+    solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+  } else {
+    fb.classList.add('bad');
+    fb.textContent = 'Not quite — fix the highlighted blank and try again, or peek at the steps.';
+  }
+}
+
+function showSteps(){ $('solution').classList.add('show'); typeset(); }
+
+$('check').addEventListener('click', checkAnswers);
+$('next').addEventListener('click', newProblem);
+$('steps').addEventListener('click', showSteps);
+$('answers').addEventListener('keydown', (e) => { if (e.key === 'Enter') checkAnswers(); });
+
+/* =========================================================================
+   QUESTIONS — each entry is one problem type. Edit numbers inside gen().
+   ========================================================================= */
+/* =========================================================================
+   Lecture 19b — Stackelberg Competition (First-Mover Advantage in Quantity)
+   Model: demand P=A-Q (Q=q1+q2), Firm 1 (the leader) chooses q1 first;
+   Firm 2 (the follower) observes q1 and best-responds with the ordinary
+   Cournot reaction function q2(q1)=(A-c2-q1)/2. Firm 1 anticipates this
+   and picks q1 to maximize its own profit given Firm 2's reaction.
+   ========================================================================= */
+
+function stackelbergDerive(A, c1, c2){
+  const followerIntercept = (A - c2) / 2;      // q2(q1) = followerIntercept - q1/2
+  const revenueIntercept = (A + c2) / 2;        // Firm 1's residual price intercept
+  const q1 = revenueIntercept - c1;             // MR1 = revenueIntercept - q1 = c1
+  const q2 = followerIntercept - q1 / 2;
+  const P = A - q1 - q2;
+  const profit1 = (P - c1) * q1;
+  const profit2 = (P - c2) * q2;
+  return { followerIntercept, revenueIntercept, q1, q2, P, profit1, profit2 };
+}
+
+function cournotDerive(A, c1, c2){
+  const q1 = (A - 2*c1 + c2) / 3;
+  const q2 = (A - 2*c2 + c1) / 3;
+  const Q = q1 + q2;
+  const P = A - Q;
+  const profit1 = (P - c1) * q1;
+  const profit2 = (P - c2) * q2;
+  return { q1, q2, P, profit1, profit2 };
+}
+
+/* [A, c1, c2] — professor's own numbers first, then verified variants */
+const POOL_STACK = [
+  [60,10,20], [68,10,12], [82,4,6], [88,10,4], [98,28,18],
+  [94,6,22],  [76,34,32], [58,4,18], [82,24,18], [96,8,12],
+];
+
+/* [A, c1, c2] — clean for BOTH Cournot and Stackelberg, for the head-to-head comparison */
+const POOL_COMPARE = [
+  [60,10,20], [103,13,31], [51,23,7], [63,31,35],
+  [69,18,27], [65,20,11],  [39,6,9],  [90,24,18],
+];
+
+/* [A, c] — symmetric-cost special case: q1=(A-c)/2 (the monopoly quantity!), q2=(A-c)/4 */
+const POOL_SYM = [ [30,10], [50,10], [60,20], [44,20], [36,8], [52,12] ];
+
+const QUESTIONS = [
+
+  /* ----- 1. The full Stackelberg derivation (matches the slide exactly) - */
+  {
+    key: 'stackelberg',
+    name: 'Solving the Stackelberg game',
+    eyebrow: 'Leader anticipates the follower\u2019s reaction',
+    gen(){
+      const [A,c1,c2] = pick(POOL_STACK);
+      const r = stackelbergDerive(A, c1, c2);
+      const promptHTML = `
+        <p>Two firms compete in quantities. Firm 1 moves first and Firm 2 observes Firm 1's output before
+           choosing its own. Demand is \\(P=${A}-Q\\); Firm 1's marginal cost is \\(${c1}\\), Firm 2's is
+           \\(${c2}\\).</p>
+        <p>Given Firm 1's output \\(q_1\\), find Firm 2's marginal revenue, its best-response quantity
+           \\(q_2(q_1)\\), Firm 1's resulting revenue and marginal revenue, and then solve for the full
+           equilibrium: both quantities, the price, and both firms' profits.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Taking \\(q_1\\) as given, Firm 2's revenue is \\((${A}-q_1-q_2)q_2\\), so
+           \\(MR_2=${A}-q_1-2q_2\\). Setting \\(MR_2=MC_2=${c2}\\):
+           \\(q_2(q_1)=\\dfrac{${A}-${c2}-q_1}{2}=\\mathbf{${r.followerIntercept}}-\\dfrac{q_1}{2}\\).</p>
+        <p>Firm 1 anticipates this reaction, so its price is
+           \\(P=${A}-q_1-\\left(${r.followerIntercept}-\\dfrac{q_1}{2}\\right)=\\mathbf{${r.revenueIntercept}}-\\dfrac{q_1}{2}\\),
+           giving revenue \\(\\left(${r.revenueIntercept}-\\dfrac{q_1}{2}\\right)q_1\\) and
+           \\(MR_1=\\mathbf{${r.revenueIntercept}}-q_1\\). Setting \\(MR_1=MC_1=${c1}\\):
+           \\(q_1=${r.revenueIntercept}-${c1}=\\mathbf{${r.q1}}\\).</p>
+        <p>Plugging back in: \\(q_2=${r.followerIntercept}-${r.q1}/2=\\mathbf{${r.q2}}\\), so
+           \\(P=${A}-${r.q1}-${r.q2}=\\mathbf{${r.P}}\\). Profit\\(_1=(${r.P}-${c1})(${r.q1})=\\mathbf{${r.profit1}}\\),
+           Profit\\(_2=(${r.P}-${c2})(${r.q2})=\\mathbf{${r.profit2}}\\).</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: "Firm 2's best response intercept \\(=\\)", answer: r.followerIntercept, tol: 0.01 },
+          { label: "Firm 1's revenue/MR intercept \\(=\\)", answer: r.revenueIntercept, tol: 0.01 },
+          { label: '\\(q_1=\\)', answer: r.q1, tol: 0.01 },
+          { label: '\\(q_2=\\)', answer: r.q2, tol: 0.01 },
+          { label: '\\(P=\\)', prefix: '$', answer: r.P, tol: 0.01 },
+          { label: "Firm 1's profit \\(=\\)", prefix: '$', answer: r.profit1, tol: 0.01 },
+          { label: "Firm 2's profit \\(=\\)", prefix: '$', answer: r.profit2, tol: 0.01 },
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 2. Stackelberg vs. Cournot: the first-mover advantage ----------- */
+  {
+    key: 'vscournot',
+    name: 'Stackelberg vs. Cournot',
+    eyebrow: 'What does moving first buy you?',
+    gen(){
+      const [A,c1,c2] = pick(POOL_COMPARE);
+      const cn = cournotDerive(A, c1, c2);
+      const st = stackelbergDerive(A, c1, c2);
+      const promptHTML = `
+        <p>Demand is \\(P=${A}-Q\\); Firm 1's marginal cost is \\(${c1}\\), Firm 2's is \\(${c2}\\). If the
+           two firms chose quantities simultaneously (Cournot), the equilibrium would be
+           \\(q_1=${cn.q1}\\), \\(q_2=${cn.q2}\\), \\(P=${cn.P}\\), with profits \\(${cn.profit1}\\) and
+           \\(${cn.profit2}\\).</p>
+        <p>Now suppose instead Firm 1 gets to move first (Stackelberg). Find the new \\(q_1\\), \\(q_2\\),
+           and price, and say whether Firm 1's quantity and profit are higher or lower than under
+           Cournot.</p>`;
+      const q1dir = st.q1 > cn.q1 ? 'higher' : 'lower';
+      const profit1dir = st.profit1 > cn.profit1 ? 'higher' : 'lower';
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>As a Stackelberg leader, Firm 1 solves \\(q_1=\\dfrac{${A}+${c2}}{2}-${c1}=\\mathbf{${st.q1}}\\),
+           and Firm 2 best-responds with \\(q_2=\\dfrac{${A}-${c2}}{2}-\\dfrac{${st.q1}}{2}=\\mathbf{${st.q2}}\\),
+           giving \\(P=${A}-${st.q1}-${st.q2}=\\mathbf{${st.P}}\\).</p>
+        <p>Compare to Cournot: Firm 1's quantity went from \\(${cn.q1}\\) to \\(${st.q1}\\) — <strong>${q1dir}</strong>.
+           Its profit went from \\(${cn.profit1}\\) to \\(${st.profit1}\\) — <strong>${profit1dir}</strong>.
+           Meanwhile Firm 2, now stuck reacting to a quantity it can no longer influence, produces less
+           (\\(${cn.q2}\\to${st.q2}\\)) and earns less (\\(${cn.profit2}\\to${st.profit2}\\)).</p>
+        <p>Committing to a larger output first is credible here precisely because it's already produced
+           by the time Firm 2 decides — Firm 2's best response is to accommodate by producing less, and
+           Firm 1 captures a bigger share of the market as a result.</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(q_1=\\)', answer: st.q1, tol: 0.01 },
+          { label: '\\(q_2=\\)', answer: st.q2, tol: 0.01 },
+          { label: '\\(P=\\)', prefix: '$', answer: st.P, tol: 0.01 },
+          { type: 'text', label: "Firm 1's quantity, relative to Cournot, is:", accept: [q1dir] },
+          { type: 'text', label: "Firm 1's profit, relative to Cournot, is:", accept: [profit1dir] },
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 3. The symmetric-cost special case ------------------------------ */
+  {
+    key: 'symmetric',
+    name: 'A clean special case: equal costs',
+    eyebrow: 'The leader produces the monopoly quantity',
+    gen(){
+      const [A,c] = pick(POOL_SYM);
+      const q1 = (A - c) / 2, q2 = (A - c) / 4;
+      const Q = q1 + q2, P = A - Q;
+      const profit1 = (P - c) * q1, profit2 = (P - c) * q2;
+      const promptHTML = `
+        <p>Two firms with the <em>same</em> marginal cost \\(c=${c}\\) compete Stackelberg-style;
+           demand is \\(P=${A}-Q\\) and Firm 1 leads.</p>
+        <p>Find both quantities, the price, and both firms' profits — and compare \\(q_1\\) to what a
+           monopolist facing this same demand and cost would produce.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>With equal costs, Firm 2's reaction is \\(q_2(q_1)=\\dfrac{${A}-${c}}{2}-\\dfrac{q_1}{2}\\), and
+           Firm 1's problem becomes \\(MR_1=\\dfrac{${A}+${c}}{2}-q_1=${c}\\Rightarrow
+           q_1=\\dfrac{${A}-${c}}{2}=\\mathbf{${q1}}\\).</p>
+        <p>That's exactly the monopoly quantity for this market! Plugging back in:
+           \\(q_2=\\dfrac{${A}-${c}}{4}=\\mathbf{${q2}}\\) — always exactly <em>half</em> of \\(q_1\\) when
+           costs are equal. \\(P=${A}-${q1}-${q2}=\\mathbf{${P}}\\).</p>
+        <p>Profit\\(_1=(${P}-${c})(${q1})=\\mathbf{${profit1}}\\), Profit\\(_2=(${P}-${c})(${q2})=\\mathbf{${profit2}}\\)
+           — the leader's profit is always exactly <em>double</em> the follower's here. Being first lets
+           Firm 1 act like the monopolist it would be if Firm 2 didn't exist, while Firm 2 is left to
+           squeeze into whatever demand remains.</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(q_1=\\)', answer: q1, tol: 0.01 },
+          { label: '\\(q_2=\\)', answer: q2, tol: 0.01 },
+          { label: '\\(P=\\)', prefix: '$', answer: P, tol: 0.01 },
+          { label: "Firm 1's profit \\(=\\)", prefix: '$', answer: profit1, tol: 0.01 },
+          { label: "Firm 2's profit \\(=\\)", prefix: '$', answer: profit2, tol: 0.01 },
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 4. Conceptual: first-mover advantage ----------------------------- */
+  {
+    key: 'concept',
+    name: 'First-mover advantage in quantities',
+    eyebrow: 'True or false',
+    gen(){
+      const statements = [
+        { t: 'The Stackelberg leader produces more than it would in the Cournot (simultaneous) equilibrium', v: true },
+        { t: 'The Stackelberg follower produces less than it would in the Cournot equilibrium', v: true },
+        { t: 'Total industry output is higher under Stackelberg than under Cournot', v: true },
+        { t: 'The advantage of moving first requires that the follower can actually observe the leader\u2019s quantity before choosing its own', v: true },
+        { t: 'The leader\u2019s quantity commitment works because it changes the follower\u2019s best response', v: true },
+        { t: 'Both firms earn the same profit in the Stackelberg equilibrium as in Cournot', v: false },
+        { t: 'The follower would prefer to move first too, if it could, given the same cost structure', v: false },
+        { t: 'Market price is higher under Stackelberg than under Cournot', v: false },
+      ];
+      const order = shuffle(statements);
+      const correct = order.map((s,i) => s.v ? i : -1).filter(i => i >= 0);
+      const promptHTML = `<p>Select <strong>all</strong> statements that are true about Stackelberg
+        (sequential-quantity) competition relative to Cournot (simultaneous-quantity) competition.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>The leader commits to a large quantity <em>before</em> the follower moves, and because that
+           commitment is real (already produced, publicly observable), the follower's best response is
+           to scale back — exactly the same "credibility through commitment" logic as the entry-deterrence
+           game, just applied to quantities instead of price. That's also why it only works if the
+           follower can actually see the commitment: a leader who moved first in secret would gain
+           nothing, since the follower would just play its ordinary Cournot best response.</p>
+        <p>Since total output rises toward the competitive level, price <em>falls</em> relative to
+           Cournot — consumers benefit from the extra competition even as the leader's own profit rises
+           at the follower's expense. And no, if both firms have identical costs, the follower would very
+           much like to be the leader instead — asymmetric timing is precisely what creates the
+           asymmetric payoff.</p>`;
+      return {
+        promptHTML,
+        multi: { options: order.map(s => s.t), correct },
+        solutionHTML
+      };
+    }
+  },
+
+];
+
+/* ---- Startup ----
+   Primary path: MathJax's pageReady hook calls boot() once math is ready.
+   Fallback: if MathJax can't load (offline), still show questions after 3s. */
+let booted = false;
+function boot(){ if (booted) return; booted = true; buildTopics(); newProblem(); }
+setTimeout(() => { if (!booted) boot(); }, 3000);
+</script>
+</body>
+</html>

@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  ECO 3101 — Interactive practice page.  Self-contained: one HTML file.
+  No installation, no server. Double-click to open; drop into a GitHub repo
+  to publish for students.
+
+  HOW IT'S ORGANIZED (for editing later):
+  - All the math/questions live in the QUESTIONS array near the bottom of the
+    <script>. Each entry is one "problem type." To change the random ranges,
+    edit the numbers inside its gen() function — look for "EDIT NUMBERS HERE".
+  - To add a new problem type, copy one block and adjust it.
+  - The look (colors/fonts) is in the <style> block; you can ignore it.
+  ============================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lecture 13 Exercises — Intermediate Microeconomics</title>
+
+<!-- Fonts: IBM Plex family (academic/technical feel) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- MathJax: renders the LaTeX math. Loads from a CDN; needs internet.
+     We boot the app from MathJax's pageReady hook (see config below). -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(', '\\)'], ['$', '$']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+    svg: { fontCache: 'global' },
+    startup: {
+      typeset: false,
+      pageReady: () => MathJax.startup.defaultPageReady().then(() => boot())
+    }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+
+<style>
+  :root{
+    --paper:#eef1f5;        /* page background (cool soft white) */
+    --grid:#e0e5ec;         /* faint graph-paper lines */
+    --card:#ffffff;
+    --ink:#17263a;          /* primary text: deep slate-navy */
+    --muted:#5d6b7c;        /* secondary text */
+    --line:#dde3ea;         /* hairlines / borders */
+    --accent:#2b5c8a;       /* scholarly blue */
+    --accent-d:#1f456a;
+    --success:#2f7a52;
+    --success-bg:#eaf4ee;
+    --error:#b0432e;
+    --error-bg:#f7ece9;
+    --shadow:0 1px 2px rgba(23,38,58,.05), 0 12px 30px rgba(23,38,58,.07);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    color:var(--ink);
+    background-color:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:26px 26px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{ max-width:740px; margin:0 auto; padding:40px 20px 80px; }
+
+  /* ---- Header ---- */
+  .kicker{
+    font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.13em;
+    color:var(--accent); margin:0 0 10px;
+  }
+  header{ display:flex; align-items:center; gap:14px; margin-bottom:6px; }
+  .mark{ flex:0 0 auto; }
+  .mark svg{ display:block; }
+  h1{
+    font-family:'IBM Plex Serif', Georgia, serif;
+    font-weight:600; font-size:1.7rem; margin:0; letter-spacing:.01em;
+  }
+  .sub{ color:var(--muted); margin:.4em 0 26px; font-size:1rem; }
+
+  /* ---- Topic selector ---- */
+  .topics{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+  .topic{
+    font:500 .85rem/1 'IBM Plex Sans', sans-serif;
+    color:var(--muted); background:var(--card);
+    border:1px solid var(--line); border-radius:999px;
+    padding:8px 15px; cursor:pointer; transition:all .15s ease;
+  }
+  .topic:hover{ border-color:var(--accent); color:var(--accent); }
+  .topic.active{
+    background:var(--accent); border-color:var(--accent);
+    color:#fff; box-shadow:0 4px 12px rgba(43,92,138,.22);
+  }
+
+  /* ---- Card ---- */
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:26px 26px 22px; box-shadow:var(--shadow);
+  }
+  .eyebrow{
+    font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.1em; color:var(--accent);
+    margin-bottom:12px; display:flex; align-items:center; gap:8px;
+  }
+  .prompt{ font-size:1.05rem; }
+  .prompt p{ margin:.5em 0; }
+  .prompt .hint{
+    color:var(--muted); font-size:.92rem;
+    border-left:3px solid var(--line); padding-left:12px; margin-top:14px;
+  }
+
+  /* ---- Answer fields ---- */
+  .answers{ margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+  .field{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .field label{ font-size:.95rem; color:var(--ink); min-width:0; }
+  .field .inputwrap{ display:inline-flex; align-items:center; gap:6px; }
+  .field .prefix{ color:var(--muted); font-family:'IBM Plex Mono', monospace; }
+  .field input{
+    width:130px; font:500 1rem 'IBM Plex Mono', monospace;
+    color:var(--ink); background:var(--paper);
+    border:1.5px solid var(--line); border-radius:9px; padding:9px 11px;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .field input:focus{ outline:none; border-color:var(--accent); background:#fff; }
+  .field .unit{ color:var(--muted); font-size:.9rem; }
+  .field.ok input{ border-color:var(--success); background:var(--success-bg); }
+  .field.no input{ border-color:var(--error); background:var(--error-bg); }
+  .field .tag{
+    font:600 .68rem/1 'IBM Plex Mono', monospace; text-transform:uppercase;
+    letter-spacing:.06em; padding:3px 7px; border-radius:6px; opacity:0;
+  }
+  .field.ok .tag{ opacity:1; color:var(--success); background:var(--success-bg); }
+  .field.no .tag{ opacity:1; color:var(--error); background:var(--error-bg); }
+
+  /* ---- Multiple choice ---- */
+  .choices{ margin-top:20px; display:flex; flex-direction:column; gap:10px; }
+  .choice{
+    text-align:left; font:500 1rem 'IBM Plex Sans', sans-serif; color:var(--ink);
+    background:var(--paper); border:1.5px solid var(--line); border-radius:11px;
+    padding:13px 16px; cursor:pointer; transition:all .13s ease;
+    display:flex; align-items:center; gap:12px;
+  }
+  .choice:hover{ border-color:var(--accent); }
+  .choice .bullet{
+    flex:0 0 auto; width:22px; height:22px; border-radius:50%;
+    border:1.5px solid var(--line); display:inline-flex; align-items:center;
+    justify-content:center; font:600 .8rem 'IBM Plex Mono', monospace; color:var(--muted);
+  }
+  .choice.sel{ border-color:var(--accent); background:#fff; box-shadow:0 3px 10px rgba(43,92,138,.14); }
+  .choice.sel .bullet{ border-color:var(--accent); color:var(--accent); }
+  .choice.ok{ border-color:var(--success); background:var(--success-bg); }
+  .choice.ok .bullet{ border-color:var(--success); color:var(--success); background:#fff; }
+  .choice.no{ border-color:var(--error); background:var(--error-bg); }
+  .choice.no .bullet{ border-color:var(--error); color:var(--error); background:#fff; }
+
+  /* ---- Multi-select (checkbox) ---- */
+  .choice .box{
+    flex:0 0 auto; width:21px; height:21px; border-radius:6px;
+    border:1.5px solid var(--line); display:inline-flex; align-items:center;
+    justify-content:center; background:#fff;
+  }
+  .choice .box svg{ width:13px; height:13px; opacity:0; }
+  .choice.sel .box{ border-color:var(--accent); background:var(--accent); }
+  .choice.sel .box svg{ opacity:1; }
+  .choice.ok .box{ border-color:var(--success); background:var(--success); }
+  .choice.ok .box svg{ opacity:1; }
+  .choice.no .box{ border-color:var(--error); background:var(--error); }
+  .choice.no .box svg{ opacity:1; }
+
+  /* ---- Matching ---- */
+  .matchrows{ margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+  .matchrow{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .matchrow .ml{ flex:1 1 250px; font-size:.98rem; }
+  .matchrow select{
+    font:500 .95rem 'IBM Plex Sans',sans-serif; color:var(--ink); background:var(--paper);
+    border:1.5px solid var(--line); border-radius:9px; padding:9px 11px; min-width:190px; cursor:pointer;
+  }
+  .matchrow select:focus{ outline:none; border-color:var(--accent); background:#fff; }
+  .matchrow.ok select{ border-color:var(--success); background:var(--success-bg); }
+  .matchrow.no select{ border-color:var(--error); background:var(--error-bg); }
+  .matchrow .tag{ font:600 .68rem/1 'IBM Plex Mono',monospace; text-transform:uppercase;
+    letter-spacing:.06em; padding:3px 7px; border-radius:6px; opacity:0; }
+  .matchrow.ok .tag{ opacity:1; color:var(--success); background:var(--success-bg); }
+  .matchrow.no .tag{ opacity:1; color:var(--error); background:var(--error-bg); }
+
+  /* ---- Diagram ---- */
+  .diagram{ margin:18px 0 6px; text-align:center; }
+  .diagram svg{ max-width:100%; height:auto; background:#fff;
+    border:1px solid var(--line); border-radius:10px; }
+  .diagram .cap{ color:var(--muted); font-size:.85rem; margin-top:6px; }
+
+  /* ---- Data table (cost / schedule tables in prompts) ---- */
+  .costtable{
+    border-collapse:collapse; margin:16px auto; background:#fff;
+    font:500 .95rem 'IBM Plex Mono',monospace; min-width:280px;
+  }
+  .costtable th, .costtable td{
+    border:1px solid var(--line); padding:7px 16px; text-align:right;
+  }
+  .costtable th{
+    background:var(--paper); font:600 .8rem 'IBM Plex Sans',sans-serif;
+    text-transform:uppercase; letter-spacing:.05em; color:var(--muted);
+  }
+
+  /* ---- Actions ---- */
+  .actions{ display:flex; align-items:center; gap:10px; margin-top:22px; flex-wrap:wrap; }
+  .btn{
+    font:600 .92rem 'IBM Plex Sans', sans-serif; cursor:pointer;
+    border-radius:10px; padding:11px 18px; border:1.5px solid transparent;
+    transition:all .15s ease;
+  }
+  .btn-primary{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .btn-primary:hover{ background:var(--accent-d); border-color:var(--accent-d); }
+  .btn-ghost{ background:#fff; color:var(--accent); border-color:var(--line); }
+  .btn-ghost:hover{ border-color:var(--accent); }
+  .btn-text{
+    background:none; border:none; cursor:pointer; color:var(--muted);
+    font:500 .9rem 'IBM Plex Sans', sans-serif; text-decoration:underline;
+    text-underline-offset:3px; padding:6px 4px;
+  }
+  .btn-text:hover{ color:var(--accent); }
+  .spacer{ flex:1 1 auto; }
+  .score{ font:500 .85rem 'IBM Plex Mono', monospace; color:var(--muted); }
+
+  /* ---- Feedback + solution ---- */
+  .feedback{ margin-top:16px; font-weight:500; font-size:.96rem; display:none; }
+  .feedback.show{ display:block; }
+  .feedback.good{ color:var(--success); }
+  .feedback.bad{ color:var(--error); }
+  .solution{
+    display:none; margin-top:14px; padding:16px 18px;
+    background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    font-size:.95rem;
+  }
+  .solution.show{ display:block; }
+  .solution h4{
+    margin:0 0 8px; font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.08em; color:var(--muted);
+  }
+  .solution p{ margin:.4em 0; }
+
+  footer{ margin-top:30px; color:var(--muted); font-size:.82rem; text-align:center; line-height:1.6; }
+  footer a{ color:var(--accent); text-decoration:none; }
+  footer a:hover{ text-decoration:underline; }
+
+  @media (max-width:520px){
+    .wrap{ padding:26px 14px 60px; }
+    .actions{ gap:8px; }
+    .spacer{ flex-basis:100%; height:0; }
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .card{ animation:rise .25s ease both; }
+    @keyframes rise{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">ECO 3101 · Perfect Competition & Government Intervention</p>
+  <header>
+    <span class="mark" aria-hidden="true">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+        <path d="M5 29V5M5 29h24" stroke="#2b5c8a" stroke-width="2" stroke-linecap="round"/>
+        <path d="M6 24C12 24 13 9 28 8" stroke="#17263a" stroke-width="2" stroke-linecap="round" fill="none"/>
+      </svg>
+    </span>
+    <h1>Lecture 13 Exercises</h1>
+  </header>
+  <p class="sub">Intermediate Microeconomic Theory. Fresh numbers every time — work it out, type your answer, check yourself.</p>
+
+  <div class="topics" id="topics" role="group" aria-label="Choose a problem type"></div>
+
+  <div class="card" id="card">
+    <div class="eyebrow"><span id="eyebrow">—</span></div>
+    <div class="prompt" id="prompt"></div>
+
+    <div class="answers" id="answers"></div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="check">Check answer</button>
+      <button class="btn btn-ghost" id="next">New question</button>
+      <button class="btn-text" id="steps">Show steps</button>
+      <span class="spacer"></span>
+      <span class="score" id="score">Solved 0</span>
+    </div>
+
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <div class="solution" id="solution"></div>
+  </div>
+
+  <footer>
+    Ungraded self-practice — reload for a fresh set.<br>
+    Built for <strong>ECO 3101</strong> at Florida State University.<br>
+    Found an error, or have a correction or suggestion? Email
+    <a href="mailto:your-email@fsu.edu">your-email@fsu.edu</a>.
+  </footer>
+</div>
+
+<script>
+/* ============================ small helpers ============================ */
+const $ = (id) => document.getElementById(id);
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const randint = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+function shuffle(a){ a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const round = (x, d=6) => { const f = 10**d; return Math.round((x + Number.EPSILON) * f) / f; };
+const comma = (x) => x.toLocaleString('en-US');
+function parseNum(s){
+  if (s == null) return null;
+  s = String(s).trim().replace(/,/g,'').replace(/\s+/g,'');
+  if (s === '') return null;
+  // allow simple fractions like -3/4
+  const frac = s.match(/^(-?\d*\.?\d+)\/(-?\d*\.?\d+)$/);
+  if (frac){ const d = parseFloat(frac[2]); if (d === 0) return null; return parseFloat(frac[1]) / d; }
+  const v = Number(s);
+  return Number.isFinite(v) ? v : null;
+}
+function normTxt(s){
+  return String(s == null ? '' : s).toLowerCase()
+    .replace(/\s+/g,'').replace(/[*·×]/g,'').replace(/\\cdot/g,'')
+    .replace(/\^/g,'').replace(/\{|\}/g,'');
+}
+function typeset(){ if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); }
+
+/* ============================ state / engine ============================ */
+let current = 0;      // index into QUESTIONS
+let problem = null;   // the generated instance
+let solvedCount = 0;
+let mcPick = null;    // selected choice index for MC questions
+let multiPick = new Set(); // selected indices for multi-select questions
+
+function buildTopics(){
+  const box = $('topics');
+  box.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const b = document.createElement('button');
+    b.className = 'topic' + (i === current ? ' active' : '');
+    b.textContent = q.name;
+    b.addEventListener('click', () => { current = i; syncTopics(); newProblem(); });
+    box.appendChild(b);
+  });
+}
+function syncTopics(){
+  [...$('topics').children].forEach((b, i) => b.classList.toggle('active', i === current));
+}
+
+function newProblem(){
+  problem = QUESTIONS[current].gen();
+  mcPick = null;
+  multiPick = new Set();
+  $('eyebrow').textContent = QUESTIONS[current].eyebrow || QUESTIONS[current].name;
+  $('prompt').innerHTML = problem.promptHTML;
+
+  const wrap = $('answers');
+  wrap.innerHTML = '';
+
+  if (problem.mc){
+    // multiple-choice rendering
+    const list = document.createElement('div');
+    list.className = 'choices';
+    problem.mc.options.forEach((opt, i) => {
+      const c = document.createElement('button');
+      c.className = 'choice';
+      c.dataset.idx = i;
+      c.innerHTML = `<span class="bullet">${String.fromCharCode(65+i)}</span><span>${opt}</span>`;
+      c.addEventListener('click', () => {
+        mcPick = i;
+        [...list.children].forEach(ch => ch.classList.remove('sel','ok','no'));
+        c.classList.add('sel');
+      });
+      list.appendChild(c);
+    });
+    wrap.appendChild(list);
+  } else if (problem.multi){
+    // multiple-answers (checkbox) rendering
+    const list = document.createElement('div');
+    list.className = 'choices';
+    problem.multi.options.forEach((opt, i) => {
+      const c = document.createElement('button');
+      c.className = 'choice';
+      c.dataset.idx = i;
+      c.innerHTML = `<span class="box"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.2 3.2L13 4.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>${opt}</span>`;
+      c.addEventListener('click', () => {
+        if (multiPick.has(i)) multiPick.delete(i); else multiPick.add(i);
+        c.classList.toggle('sel', multiPick.has(i));
+        c.classList.remove('ok','no');
+      });
+      list.appendChild(c);
+    });
+    wrap.appendChild(list);
+  } else if (problem.match){
+    // matching rendering (each row: statement + a <select> of labels)
+    const box = document.createElement('div');
+    box.className = 'matchrows';
+    const optionsHTML = ['<option value="">\u2014 choose \u2014</option>']
+      .concat(problem.match.options.map((o,j) => `<option value="${j}">${o}</option>`)).join('');
+    problem.match.rows.forEach((row, i) => {
+      const r = document.createElement('div');
+      r.className = 'matchrow';
+      r.dataset.idx = i;
+      r.innerHTML = `<span class="ml">${row.left}</span><select data-idx="${i}">${optionsHTML}</select><span class="tag"></span>`;
+      box.appendChild(r);
+    });
+    wrap.appendChild(box);
+  } else {
+    // input-field rendering (numeric or text parts)
+    problem.parts.forEach((part, idx) => {
+      const field = document.createElement('div');
+      field.className = 'field';
+      field.innerHTML = `
+        <label>${part.label}</label>
+        <span class="inputwrap">
+          ${part.prefix ? `<span class="prefix">${part.prefix}</span>` : ''}
+          <input type="text" inputmode="${part.type === 'text' ? 'text' : 'decimal'}"
+                 autocomplete="off" data-idx="${idx}" placeholder="${part.placeholder || '?'}">
+          ${part.unit ? `<span class="unit">${part.unit}</span>` : ''}
+        </span>
+        <span class="tag"></span>`;
+      wrap.appendChild(field);
+    });
+  }
+
+  $('feedback').className = 'feedback';
+  $('feedback').textContent = '';
+  $('solution').className = 'solution';
+  $('solution').innerHTML = problem.solutionHTML;
+
+  typeset();
+  const first = wrap.querySelector('input');
+  if (first) first.focus();
+}
+
+function checkAnswers(){
+  const fb = $('feedback');
+
+  if (problem.mc){
+    const list = $('answers').querySelector('.choices');
+    if (mcPick == null){
+      fb.className = 'feedback show bad';
+      fb.textContent = 'Select an option first.';
+      return;
+    }
+    const correct = problem.mc.correct;
+    [...list.children].forEach((ch, i) => {
+      ch.classList.remove('sel','ok','no');
+      if (i === correct) ch.classList.add('ok');
+      else if (i === mcPick) ch.classList.add('no');
+    });
+    fb.className = 'feedback show';
+    if (mcPick === correct){
+      fb.classList.add('good'); fb.textContent = '\u2713 Correct.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite — the highlighted option is correct. See the steps below.';
+    }
+    return;
+  }
+
+  if (problem.multi){
+    const list = $('answers').querySelector('.choices');
+    if (multiPick.size === 0){
+      fb.className = 'feedback show bad';
+      fb.textContent = 'Select at least one option (or as many as apply).';
+      return;
+    }
+    const correct = new Set(problem.multi.correct);
+    const ok = correct.size === multiPick.size && [...correct].every(i => multiPick.has(i));
+    [...list.children].forEach((ch, i) => {
+      ch.classList.remove('sel','ok','no');
+      if (correct.has(i)) ch.classList.add('ok');
+      else if (multiPick.has(i)) ch.classList.add('no');
+    });
+    fb.className = 'feedback show';
+    if (ok){
+      fb.classList.add('good'); fb.textContent = '\u2713 Correct.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite \u2014 the correct set is highlighted green. See the steps below.';
+    }
+    return;
+  }
+
+  if (problem.match){
+    const rows = [...$('answers').querySelectorAll('.matchrow')];
+    let all = true, blank = false;
+    rows.forEach(r => {
+      const i = +r.dataset.idx;
+      const sel = r.querySelector('select');
+      const tag = r.querySelector('.tag');
+      r.classList.remove('ok','no');
+      if (sel.value === ''){ blank = true; all = false; if(tag) tag.textContent=''; return; }
+      if (+sel.value === problem.match.rows[i].correct){ r.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { r.classList.add('no'); if(tag) tag.textContent='try again'; all = false; }
+    });
+    fb.className = 'feedback show';
+    if (blank){ fb.classList.add('bad'); fb.textContent = 'Match every row before checking.'; }
+    else if (all){
+      fb.classList.add('good'); fb.textContent = '\u2713 All matched correctly.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite \u2014 the green rows are right; fix the others or peek at the steps.';
+    }
+    return;
+  }
+
+  const inputs = [...$('answers').querySelectorAll('input')];
+  let allCorrect = true, anyBlank = false;
+
+  inputs.forEach(inp => {
+    const idx = +inp.dataset.idx;
+    const part = problem.parts[idx];
+    const field = inp.closest('.field');
+    const tag = field.querySelector('.tag');
+    field.classList.remove('ok', 'no');
+
+    if (part.type === 'text'){
+      const raw = inp.value.trim();
+      if (raw === ''){ anyBlank = true; allCorrect = false; if(tag) tag.textContent=''; return; }
+      const got = normTxt(raw);
+      const ok = part.accept.map(normTxt).includes(got);
+      if (ok){ field.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { field.classList.add('no'); if(tag) tag.textContent='try again'; allCorrect = false; }
+    } else {
+      const val = parseNum(inp.value);
+      if (val === null){ anyBlank = true; allCorrect = false; if(tag) tag.textContent=''; return; }
+      if (Math.abs(val - part.answer) <= (part.tol ?? 0.01)){ field.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { field.classList.add('no'); if(tag) tag.textContent='try again'; allCorrect = false; }
+    }
+  });
+
+  fb.className = 'feedback show';
+  if (anyBlank){
+    fb.classList.add('bad');
+    fb.textContent = 'Enter an answer in each blank.';
+  } else if (allCorrect){
+    fb.classList.add('good');
+    fb.textContent = inputs.length > 1 ? '\u2713 All correct — nice work.' : '\u2713 Correct.';
+    solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+  } else {
+    fb.classList.add('bad');
+    fb.textContent = 'Not quite — fix the highlighted blank and try again, or peek at the steps.';
+  }
+}
+
+function showSteps(){ $('solution').classList.add('show'); typeset(); }
+
+$('check').addEventListener('click', checkAnswers);
+$('next').addEventListener('click', newProblem);
+$('steps').addEventListener('click', showSteps);
+$('answers').addEventListener('keydown', (e) => { if (e.key === 'Enter') checkAnswers(); });
+
+/* =========================================================================
+   QUESTIONS — each entry is one problem type. Edit numbers inside gen().
+   ========================================================================= */
+/* =========================================================================
+   Lecture 13 — Perfect Competition & Government Intervention
+   Model throughout: Supply P=a+b*Q, Demand P=c-d*Q, competitive equilibrium
+   solves a+bQ=c-dQ. Every pool below stores only the seed parameters
+   [a,b,c,d,...]; every derived quantity (equilibrium, post-tax outcome,
+   surplus, DWL) is computed once, in code, from those seeds — never
+   hand-transcribed — so there is a single source of truth.
+   ========================================================================= */
+const PRODUCTS = ['wireless earbuds', 'espresso machines', 'bicycles', 'desk lamps', 'backpacks', 'kayaks', 'sneakers', 'blenders'];
+
+/* small formatting helpers so a=0 or b=1 don't print as "0+10Q" or "1Q" */
+function supExpr(a, bTxt){ return a === 0 ? `${bTxt}Q` : `${a}+${bTxt}Q`; }
+function supEval(a, bTxt, val){ return a === 0 ? `${bTxt||1}(${val})` : `${a}+${bTxt||1}(${val})`; }
+
+function scEq(a, b, c, d){
+  const Qstar = (c - a) / (b + d);
+  const Pstar = a + b * Qstar;
+  return { Qstar, Pstar };
+}
+
+/* per-unit tax T, imposed on either side — the outcome (Q1,Pb,Ps) is
+   identical either way; that invariance is the point of the lecture. */
+function taxDerive(a, b, c, d, T){
+  const { Qstar, Pstar } = scEq(a, b, c, d);
+  const Q1 = (c - a - T) / (b + d);
+  const Pb = c - d * Q1;      // price buyers pay
+  const Ps = Pb - T;          // price sellers receive
+  const CS = (c - Pb) * Q1 / 2;
+  const PS = (Ps - a) * Q1 / 2;
+  const TaxRev = T * Q1;
+  const DWL = T * (Qstar - Q1) / 2;
+  const buyerShare = d * T / (b + d);
+  const sellerShare = b * T / (b + d);
+  return { Qstar, Pstar, Q1, Pb, Ps, CS, PS, TaxRev, DWL, buyerShare, sellerShare };
+}
+
+/* binding price control at Pr (ceiling if Pr<Pstar, floor if Pr>Pstar);
+   the short side of the market rations the outcome, and we assume
+   efficient rationing (the good goes to the highest-value buyers /
+   lowest-cost sellers among the units actually traded). */
+function controlDerive(a, b, c, d, Pr){
+  const { Qstar, Pstar } = scEq(a, b, c, d);
+  const Qs = (Pr - a) / b;
+  const Qd = (c - Pr) / d;
+  const Qact = Math.min(Qs, Qd);
+  const CS = (c - Pr) * Qact - d * Qact * Qact / 2;
+  const PS = (Pr - a) * Qact - b * Qact * Qact / 2;
+  const compW = (c - a) * Qstar / 2;
+  const DWL = compW - (CS + PS);
+  return { Qstar, Pstar, Qs, Qd, Qact, CS, PS, DWL, compW };
+}
+
+/* [a,b,c,d,T] */
+const POOL_TAX = [
+  [20,10,180,10,20], [20,20,420,20,40], [10,10,290,30,40], [0,10,300,20,30],
+  [10,30,250,10,40], [10,20,310,30,50], [10,40,360,10,50], [20,30,520,20,50],
+  [20,20,380,10,30], [20,10,370,40,50],
+];
+
+/* [a,b,c,d,T] — chosen so buyerShare and sellerShare are both clean */
+const POOL_INCIDENCE = [
+  [10,10,250,20,30], [20,20,520,30,50], [20,40,420,10,50], [10,30,610,10,40],
+  [10,10,310,40,50], [20,10,540,30,40], [20,30,570,20,50], [20,20,200,10,30],
+];
+
+/* [a,b,c,d,T] — kidney-market scale (matches the slide's own numbers as
+   the first entry); a=intercept of supply, c=intercept of demand, T=fee */
+const POOL_KIDNEY = [
+  [2000,40,11000,60,1000], [3000,20,8400,40,1500], [1000,20,5000,60,2000],
+  [1000,40,6000,60,500],   [1500,50,12000,100,1500], [1000,60,8000,40,1000],
+  [2000,20,11000,80,1000], [1500,40,5500,40,2000],
+];
+
+/* [kind, a,b,c,d, Pr] */
+const POOL_CONTROL = [
+  ['ceiling',0,40,720,40,320], ['ceiling',0,10,330,20,90], ['ceiling',10,10,130,10,40],
+  ['ceiling',0,20,450,10,260], ['floor',0,10,180,10,100],  ['floor',10,20,310,10,230],
+  ['floor',10,20,450,20,270],  ['floor',20,40,520,10,460], ['ceiling',10,40,310,10,210],
+  ['ceiling',20,20,420,20,200],['ceiling',0,20,600,40,160],['floor',0,10,240,30,90],
+];
+
+const QUESTIONS = [
+
+  /* ----- 1. Excise tax, levied on either side (incidence invariance) --- */
+  {
+    key: 'excisetax',
+    name: 'Excise tax on buyers or sellers',
+    eyebrow: 'Same outcome either way',
+    gen(){
+      const [a,b,c,d,T] = pick(POOL_TAX);
+      const product = pick(PRODUCTS);
+      const onSeller = Math.random() < 0.5;
+      const r = taxDerive(a, b, c, d, T);
+      const bTxt = b === 1 ? '' : String(b), dTxt = d === 1 ? '' : String(d);
+      const side = onSeller ? 'sellers' : 'buyers';
+      const promptHTML = `
+        <p>In the competitive market for ${product}, supply is \\(P=${supExpr(a, bTxt)}\\) and demand is
+           \\(P=${c}-${dTxt}Q\\). The government imposes a per-unit tax of \\(\\$${T}\\) on <strong>${side}</strong>.</p>
+        <p>Find the new equilibrium quantity, the price buyers pay, the price sellers receive, the
+           government's tax revenue, consumer surplus, producer surplus, and the deadweight loss.</p>`;
+      const eqSetup = onSeller
+        ? `A seller only supplies at quantity \\(Q\\) if what they keep after the tax, \\(P_b-${T}\\), covers
+           their cost: \\(P_b-${T}=${supExpr(a, bTxt)}\\), i.e. \\(P_b=${supExpr(a, bTxt)}+${T}\\). Setting this equal to
+           demand: \\(${c}-${dTxt}Q=${supExpr(a, bTxt)}+${T}\\)`
+        : `A buyer's willingness to pay for the good itself, net of the tax they hand over, is
+           \\(${c}-${dTxt}Q-${T}\\). Setting this equal to supply:
+           \\(${c}-${dTxt}Q-${T}=${supExpr(a, bTxt)}\\), i.e. \\(${c}-${dTxt}Q=${supExpr(a, bTxt)}+${T}\\)`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>${eqSetup} \\(\\Rightarrow ${c-a-T}=${b+d}Q\\Rightarrow Q_1=\\mathbf{${r.Q1}}\\).</p>
+        <p>Price buyers pay: \\(P_b=${c}-${dTxt||1}(${r.Q1})=\\mathbf{${r.Pb}}\\). Price sellers receive:
+           \\(P_s=P_b-${T}=\\mathbf{${r.Ps}}\\) (check: \\(${supEval(a, bTxt, r.Q1)}=${r.Ps}\\) ✓.)</p>
+        <p>\\(CS=\\tfrac12(${c}-${r.Pb})(${r.Q1})=\\mathbf{${r.CS}}\\).
+           \\(PS=\\tfrac12(${r.Ps}-${a})(${r.Q1})=\\mathbf{${r.PS}}\\).
+           Tax revenue \\(=${T}\\times${r.Q1}=\\mathbf{${r.TaxRev}}\\).</p>
+        <p>\\(DWL=\\tfrac12(${T})(${r.Qstar}-${r.Q1})=\\mathbf{${r.DWL}}\\).</p>
+        <p>Notice this didn't depend on which side the tax was legally levied on — taxing the
+           ${onSeller ? 'buyer' : 'seller'} instead would give exactly the same \\(Q_1\\), \\(P_b\\), \\(P_s\\),
+           and deadweight loss. The <em>economic</em> incidence of a tax never depends on its
+           <em>statutory</em> incidence.</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(Q_1=\\)', answer: r.Q1, tol: 0.01 },
+          { label: 'Price buyers pay \\(=\\)', prefix: '$', answer: r.Pb, tol: 0.01 },
+          { label: 'Price sellers receive \\(=\\)', prefix: '$', answer: r.Ps, tol: 0.01 },
+          { label: 'Tax revenue \\(=\\)', prefix: '$', answer: r.TaxRev, tol: 0.01 },
+          { label: '\\(CS=\\)', prefix: '$', answer: r.CS, tol: 0.01 },
+          { label: '\\(PS=\\)', prefix: '$', answer: r.PS, tol: 0.01 },
+          { label: '\\(DWL=\\)', prefix: '$', answer: r.DWL, tol: 0.01 },
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 2. Who bears the tax: burden splits by relative slope --------- */
+  {
+    key: 'incidence',
+    name: 'Who bears the tax?',
+    eyebrow: 'Burden splits by slope',
+    gen(){
+      const [a,b,c,d,T] = pick(POOL_INCIDENCE);
+      const r = taxDerive(a, b, c, d, T);
+      const bTxt = b === 1 ? '' : String(b), dTxt = d === 1 ? '' : String(d);
+      const moreInelasticSide = d > b ? 'buyers' : 'sellers';
+      const promptHTML = `
+        <p>Supply is \\(P=${supExpr(a, bTxt)}\\) and demand is \\(P=${c}-${dTxt}Q\\). The government imposes a
+           \\(\\$${T}\\) per-unit tax (it doesn't matter, for what follows, which side is legally
+           responsible for paying it).</p>
+        <p>Find the original (no-tax) equilibrium price, how much of the tax shows up as a price
+           <em>increase</em> for buyers, how much shows up as a price <em>decrease</em> for sellers, and
+           which side ends up bearing the larger share of the burden.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>No-tax equilibrium: \\(${supExpr(a, bTxt)}=${c}-${dTxt}Q\\Rightarrow Q^*=${r.Qstar}\\),
+           \\(P^*=\\mathbf{${r.Pstar}}\\).</p>
+        <p>With the tax, \\(P_b=${r.Pb}\\) and \\(P_s=${r.Ps}\\). Buyers' price rose by
+           \\(P_b-P^*=${r.Pb}-${r.Pstar}=\\mathbf{${r.buyerShare}}\\); sellers' price fell by
+           \\(P^*-P_s=${r.Pstar}-${r.Ps}=\\mathbf{${r.sellerShare}}\\). Check: they sum to the tax,
+           \\(${r.buyerShare}+${r.sellerShare}=${T}\\) ✓.</p>
+        <p>In general, buyers' share of a per-unit tax is \\(\\dfrac{d}{b+d}\\) and sellers' share is
+           \\(\\dfrac{b}{b+d}\\), where \\(b\\) and \\(d\\) are the supply and demand slopes here. The side
+           with the <em>steeper</em> curve (relatively more price-inelastic) absorbs less of the price
+           <em>change</em> but ends up bearing <em>more</em> of the tax's dollar burden, because
+           quantity barely adjusts on that side. Here \\(d ${d > b ? '\\gt' : '\\lt'} b\\), so
+           <strong>${moreInelasticSide}</strong> bear the
+           larger share.</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(P^*=\\)', prefix: '$', answer: r.Pstar, tol: 0.01 },
+          { label: "Buyers' burden \\(=\\)", prefix: '$', answer: r.buyerShare, tol: 0.01 },
+          { label: "Sellers' burden \\(=\\)", prefix: '$', answer: r.sellerShare, tol: 0.01 },
+          { type: 'text', label: 'The larger share is borne by:', accept: [moreInelasticSide] },
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 3. The kidney market (Prof. Kim's own example, generalized) --- */
+  {
+    key: 'kidneymarket',
+    name: 'The kidney market',
+    eyebrow: "Prof. Kim's own example",
+    gen(){
+      const [a,b,c,d,T] = pick(POOL_KIDNEY);
+      const r = taxDerive(a, b, c, d, T);
+      const bTxt = b === 1 ? '' : String(b), dTxt = d === 1 ? '' : String(d);
+      const promptHTML = `
+        <p>In the unregulated (black) market for kidneys, supply is \\(P=${supExpr(a, bTxt)}_s\\) and demand is
+           \\(P=${c}-${dTxt}Q_d\\).</p>
+        <p>First, find the unregulated equilibrium price and quantity.</p>
+        <p>Now suppose a local crime boss declares that all <em>buyers</em> must pay her a finder's fee of
+           \\(\\$${T}\\) per kidney. Find the new quantity traded, the total price buyers pay (kidney price
+           plus fee), the price sellers receive, the crime boss's total take, consumer surplus, producer
+           surplus, and the deadweight loss. Finally: if she'd charged the fee to sellers instead, would
+           the price buyers pay change?</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p><strong>Unregulated:</strong> \\(${supExpr(a, bTxt)}=${c}-${dTxt}Q\\Rightarrow Q^*=${r.Qstar}\\),
+           \\(P^*=\\mathbf{${r.Pstar}}\\).</p>
+        <p><strong>With the \\(\\$${T}\\) fee on buyers:</strong> a buyer's willingness to pay for the
+           kidney itself, net of the fee, is \\(${c}-${dTxt}Q-${T}\\). Setting this equal to supply:
+           \\(${c}-${dTxt}Q-${T}=${supExpr(a, bTxt)}\\Rightarrow Q_1=\\mathbf{${r.Q1}}\\).</p>
+        <p>Seller receives \\(P_s=${supEval(a, bTxt, r.Q1)}=\\mathbf{${r.Ps}}\\); buyer's total outlay is
+           \\(P_s+${T}=\\mathbf{${r.Pb}}\\) (check against demand: \\(${c}-${dTxt||1}(${r.Q1})=${r.Pb}\\) ✓.)</p>
+        <p>\\(CS=\\tfrac12(${c}-${r.Pb})(${r.Q1})=\\mathbf{${r.CS}}\\).
+           \\(PS=\\tfrac12(${r.Ps}-${a})(${r.Q1})=\\mathbf{${r.PS}}\\).
+           Crime boss's take \\(=${T}\\times${r.Q1}=\\mathbf{${r.TaxRev}}\\).
+           \\(DWL=\\tfrac12(${T})(${r.Qstar}-${r.Q1})=\\mathbf{${r.DWL}}\\).</p>
+        <p>If the fee were charged to sellers instead, \\(Q_1\\), \\(P_s\\), the buyer's total outlay, the
+           crime boss's take, and the deadweight loss would all be <strong>unchanged</strong> — the fee's
+           economic incidence doesn't depend on who is nominally required to pay it.</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: 'Unregulated \\(Q^*=\\)', answer: r.Qstar, tol: 0.01 },
+          { label: 'Unregulated \\(P^*=\\)', prefix: '$', answer: r.Pstar, tol: 0.01 },
+          { label: 'New quantity \\(Q_1=\\)', answer: r.Q1, tol: 0.01 },
+          { label: "Buyer's total outlay \\(=\\)", prefix: '$', answer: r.Pb, tol: 0.01 },
+          { label: 'Price seller receives \\(=\\)', prefix: '$', answer: r.Ps, tol: 0.01 },
+          { label: "Crime boss's take \\(=\\)", prefix: '$', answer: r.TaxRev, tol: 0.01 },
+          { label: '\\(CS=\\)', prefix: '$', answer: r.CS, tol: 0.01 },
+          { label: '\\(PS=\\)', prefix: '$', answer: r.PS, tol: 0.01 },
+          { label: '\\(DWL=\\)', prefix: '$', answer: r.DWL, tol: 0.01 },
+          { type: 'text', label: 'Charging the fee to sellers instead would change the price buyers pay:', accept: ['no','false','unchanged'] },
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 4. Price ceiling or floor -------------------------------------- */
+  {
+    key: 'pricecontrol',
+    name: 'Price ceiling & floor',
+    eyebrow: 'Binding controls',
+    gen(){
+      const [kind,a,b,c,d,Pr] = pick(POOL_CONTROL);
+      const r = controlDerive(a, b, c, d, Pr);
+      const product = pick(PRODUCTS);
+      const bTxt = b === 1 ? '' : String(b), dTxt = d === 1 ? '' : String(d);
+      const isCeiling = kind === 'ceiling';
+      const gapWord = isCeiling ? 'shortage' : 'surplus';
+      const gapVal = isCeiling ? r.Qd - r.Qs : r.Qs - r.Qd;
+      const promptHTML = `
+        <p>In the competitive market for ${product}, supply is \\(P=${supExpr(a, bTxt)}\\) and demand is
+           \\(P=${c}-${dTxt}Q\\). The government imposes a price ${isCeiling ? 'ceiling' : 'floor'} of
+           \\(\\$${Pr}\\) per unit.</p>
+        <p>Find the quantity supplied and demanded at this price, the quantity actually traded, the
+           resulting ${gapWord}, and the consumer surplus, producer surplus, and deadweight loss under
+           the ${isCeiling ? 'ceiling' : 'floor'} (assume the limited ${isCeiling ? 'supply goes to the buyers who value it most' : 'demand is met by the lowest-cost sellers'}).</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Unregulated equilibrium: \\(Q^*=${r.Qstar}\\), \\(P^*=${r.Pstar}\\). Since
+           \\(\\$${Pr}${isCeiling ? '\\lt' : '\\gt'}\\$${r.Pstar}\\), the ${isCeiling ? 'ceiling' : 'floor'}
+           binds.</p>
+        <p>\\(Q_s=\\dfrac{${Pr}-${a}}{${bTxt||1}}=\\mathbf{${r.Qs}}\\).
+           \\(Q_d=\\dfrac{${c}-${Pr}}{${dTxt||1}}=\\mathbf{${r.Qd}}\\).</p>
+        <p>Only the ${isCeiling ? 'shorter' : 'shorter'} side of the market can be satisfied, so the
+           quantity actually traded is \\(Q=\\min(Q_s,Q_d)=\\mathbf{${r.Qact}}\\), leaving a
+           ${gapWord} of \\(\\mathbf{${gapVal}}\\) units.</p>
+        <p>\\(CS=(${c}-${Pr})(${r.Qact})-\\tfrac{${dTxt||1}}{2}(${r.Qact})^2=\\mathbf{${r.CS}}\\).</p>
+        <p>\\(PS=(${Pr}-${a})(${r.Qact})-\\tfrac{${bTxt||1}}{2}(${r.Qact})^2=\\mathbf{${r.PS}}\\).</p>
+        <p>Competitive (efficient) surplus is \\(\\tfrac12(${c}-${a})(${r.Qstar})=${r.compW}\\), so
+           \\(DWL=${r.compW}-(${r.CS}+${r.PS})=\\mathbf{${r.DWL}}\\).</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(Q_s=\\)', answer: r.Qs, tol: 0.01 },
+          { label: '\\(Q_d=\\)', answer: r.Qd, tol: 0.01 },
+          { label: 'Quantity actually traded \\(=\\)', answer: r.Qact, tol: 0.01 },
+          { label: `${isCeiling ? 'Shortage' : 'Surplus'} \\(=\\)`, answer: gapVal, tol: 0.01 },
+          { label: '\\(CS=\\)', prefix: '$', answer: r.CS, tol: 0.01 },
+          { label: '\\(PS=\\)', prefix: '$', answer: r.PS, tol: 0.01 },
+          { label: '\\(DWL=\\)', prefix: '$', answer: r.DWL, tol: 0.01 },
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+];
+
+/* ---- Startup ----
+   Primary path: MathJax's pageReady hook calls boot() once math is ready.
+   Fallback: if MathJax can't load (offline), still show questions after 3s. */
+let booted = false;
+function boot(){ if (booted) return; booted = true; buildTopics(); newProblem(); }
+setTimeout(() => { if (!booted) boot(); }, 3000);
+</script>
+</body>
+</html>
