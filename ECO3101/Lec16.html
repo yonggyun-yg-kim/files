@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  ECO 3101 — Interactive practice page.  Self-contained: one HTML file.
+  No installation, no server. Double-click to open; drop into a GitHub repo
+  to publish for students.
+
+  HOW IT'S ORGANIZED (for editing later):
+  - All the math/questions live in the QUESTIONS array near the bottom of the
+    <script>. Each entry is one "problem type." To change the random ranges,
+    edit the numbers inside its gen() function — look for "EDIT NUMBERS HERE".
+  - To add a new problem type, copy one block and adjust it.
+  - The look (colors/fonts) is in the <style> block; you can ignore it.
+  ============================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lecture 16 Exercises — Intermediate Microeconomics</title>
+
+<!-- Fonts: IBM Plex family (academic/technical feel) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- MathJax: renders the LaTeX math. Loads from a CDN; needs internet.
+     We boot the app from MathJax's pageReady hook (see config below). -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(', '\\)'], ['$', '$']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+    svg: { fontCache: 'global' },
+    startup: {
+      typeset: false,
+      pageReady: () => MathJax.startup.defaultPageReady().then(() => boot())
+    }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+
+<style>
+  :root{
+    --paper:#eef1f5;        /* page background (cool soft white) */
+    --grid:#e0e5ec;         /* faint graph-paper lines */
+    --card:#ffffff;
+    --ink:#17263a;          /* primary text: deep slate-navy */
+    --muted:#5d6b7c;        /* secondary text */
+    --line:#dde3ea;         /* hairlines / borders */
+    --accent:#2b5c8a;       /* scholarly blue */
+    --accent-d:#1f456a;
+    --success:#2f7a52;
+    --success-bg:#eaf4ee;
+    --error:#b0432e;
+    --error-bg:#f7ece9;
+    --shadow:0 1px 2px rgba(23,38,58,.05), 0 12px 30px rgba(23,38,58,.07);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    color:var(--ink);
+    background-color:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:26px 26px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{ max-width:740px; margin:0 auto; padding:40px 20px 80px; }
+
+  /* ---- Header ---- */
+  .kicker{
+    font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.13em;
+    color:var(--accent); margin:0 0 10px;
+  }
+  header{ display:flex; align-items:center; gap:14px; margin-bottom:6px; }
+  .mark{ flex:0 0 auto; }
+  .mark svg{ display:block; }
+  h1{
+    font-family:'IBM Plex Serif', Georgia, serif;
+    font-weight:600; font-size:1.7rem; margin:0; letter-spacing:.01em;
+  }
+  .sub{ color:var(--muted); margin:.4em 0 26px; font-size:1rem; }
+
+  /* ---- Topic selector ---- */
+  .topics{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+  .topic{
+    font:500 .85rem/1 'IBM Plex Sans', sans-serif;
+    color:var(--muted); background:var(--card);
+    border:1px solid var(--line); border-radius:999px;
+    padding:8px 15px; cursor:pointer; transition:all .15s ease;
+  }
+  .topic:hover{ border-color:var(--accent); color:var(--accent); }
+  .topic.active{
+    background:var(--accent); border-color:var(--accent);
+    color:#fff; box-shadow:0 4px 12px rgba(43,92,138,.22);
+  }
+
+  /* ---- Card ---- */
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:26px 26px 22px; box-shadow:var(--shadow);
+  }
+  .eyebrow{
+    font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.1em; color:var(--accent);
+    margin-bottom:12px; display:flex; align-items:center; gap:8px;
+  }
+  .prompt{ font-size:1.05rem; }
+  .prompt p{ margin:.5em 0; }
+  .prompt .hint{
+    color:var(--muted); font-size:.92rem;
+    border-left:3px solid var(--line); padding-left:12px; margin-top:14px;
+  }
+
+  /* ---- Answer fields ---- */
+  .answers{ margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+  .field{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .field label{ font-size:.95rem; color:var(--ink); min-width:0; }
+  .field .inputwrap{ display:inline-flex; align-items:center; gap:6px; }
+  .field .prefix{ color:var(--muted); font-family:'IBM Plex Mono', monospace; }
+  .field input{
+    width:130px; font:500 1rem 'IBM Plex Mono', monospace;
+    color:var(--ink); background:var(--paper);
+    border:1.5px solid var(--line); border-radius:9px; padding:9px 11px;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .field input:focus{ outline:none; border-color:var(--accent); background:#fff; }
+  .field .unit{ color:var(--muted); font-size:.9rem; }
+  .field.ok input{ border-color:var(--success); background:var(--success-bg); }
+  .field.no input{ border-color:var(--error); background:var(--error-bg); }
+  .field .tag{
+    font:600 .68rem/1 'IBM Plex Mono', monospace; text-transform:uppercase;
+    letter-spacing:.06em; padding:3px 7px; border-radius:6px; opacity:0;
+  }
+  .field.ok .tag{ opacity:1; color:var(--success); background:var(--success-bg); }
+  .field.no .tag{ opacity:1; color:var(--error); background:var(--error-bg); }
+
+  /* ---- Multiple choice ---- */
+  .choices{ margin-top:20px; display:flex; flex-direction:column; gap:10px; }
+  .choice{
+    text-align:left; font:500 1rem 'IBM Plex Sans', sans-serif; color:var(--ink);
+    background:var(--paper); border:1.5px solid var(--line); border-radius:11px;
+    padding:13px 16px; cursor:pointer; transition:all .13s ease;
+    display:flex; align-items:center; gap:12px;
+  }
+  .choice:hover{ border-color:var(--accent); }
+  .choice .bullet{
+    flex:0 0 auto; width:22px; height:22px; border-radius:50%;
+    border:1.5px solid var(--line); display:inline-flex; align-items:center;
+    justify-content:center; font:600 .8rem 'IBM Plex Mono', monospace; color:var(--muted);
+  }
+  .choice.sel{ border-color:var(--accent); background:#fff; box-shadow:0 3px 10px rgba(43,92,138,.14); }
+  .choice.sel .bullet{ border-color:var(--accent); color:var(--accent); }
+  .choice.ok{ border-color:var(--success); background:var(--success-bg); }
+  .choice.ok .bullet{ border-color:var(--success); color:var(--success); background:#fff; }
+  .choice.no{ border-color:var(--error); background:var(--error-bg); }
+  .choice.no .bullet{ border-color:var(--error); color:var(--error); background:#fff; }
+
+  /* ---- Multi-select (checkbox) ---- */
+  .choice .box{
+    flex:0 0 auto; width:21px; height:21px; border-radius:6px;
+    border:1.5px solid var(--line); display:inline-flex; align-items:center;
+    justify-content:center; background:#fff;
+  }
+  .choice .box svg{ width:13px; height:13px; opacity:0; }
+  .choice.sel .box{ border-color:var(--accent); background:var(--accent); }
+  .choice.sel .box svg{ opacity:1; }
+  .choice.ok .box{ border-color:var(--success); background:var(--success); }
+  .choice.ok .box svg{ opacity:1; }
+  .choice.no .box{ border-color:var(--error); background:var(--error); }
+  .choice.no .box svg{ opacity:1; }
+
+  /* ---- Matching ---- */
+  .matchrows{ margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+  .matchrow{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .matchrow .ml{ flex:1 1 250px; font-size:.98rem; }
+  .matchrow select{
+    font:500 .95rem 'IBM Plex Sans',sans-serif; color:var(--ink); background:var(--paper);
+    border:1.5px solid var(--line); border-radius:9px; padding:9px 11px; min-width:190px; cursor:pointer;
+  }
+  .matchrow select:focus{ outline:none; border-color:var(--accent); background:#fff; }
+  .matchrow.ok select{ border-color:var(--success); background:var(--success-bg); }
+  .matchrow.no select{ border-color:var(--error); background:var(--error-bg); }
+  .matchrow .tag{ font:600 .68rem/1 'IBM Plex Mono',monospace; text-transform:uppercase;
+    letter-spacing:.06em; padding:3px 7px; border-radius:6px; opacity:0; }
+  .matchrow.ok .tag{ opacity:1; color:var(--success); background:var(--success-bg); }
+  .matchrow.no .tag{ opacity:1; color:var(--error); background:var(--error-bg); }
+
+  /* ---- Diagram ---- */
+  .diagram{ margin:18px 0 6px; text-align:center; }
+  .diagram svg{ max-width:100%; height:auto; background:#fff;
+    border:1px solid var(--line); border-radius:10px; }
+  .diagram .cap{ color:var(--muted); font-size:.85rem; margin-top:6px; }
+
+  /* ---- Data table (cost / schedule tables in prompts) ---- */
+  .costtable{
+    border-collapse:collapse; margin:16px auto; background:#fff;
+    font:500 .95rem 'IBM Plex Mono',monospace; min-width:280px;
+  }
+  .costtable th, .costtable td{
+    border:1px solid var(--line); padding:7px 16px; text-align:right;
+  }
+  .costtable th{
+    background:var(--paper); font:600 .8rem 'IBM Plex Sans',sans-serif;
+    text-transform:uppercase; letter-spacing:.05em; color:var(--muted);
+  }
+
+  /* ---- Actions ---- */
+  .actions{ display:flex; align-items:center; gap:10px; margin-top:22px; flex-wrap:wrap; }
+  .btn{
+    font:600 .92rem 'IBM Plex Sans', sans-serif; cursor:pointer;
+    border-radius:10px; padding:11px 18px; border:1.5px solid transparent;
+    transition:all .15s ease;
+  }
+  .btn-primary{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .btn-primary:hover{ background:var(--accent-d); border-color:var(--accent-d); }
+  .btn-ghost{ background:#fff; color:var(--accent); border-color:var(--line); }
+  .btn-ghost:hover{ border-color:var(--accent); }
+  .btn-text{
+    background:none; border:none; cursor:pointer; color:var(--muted);
+    font:500 .9rem 'IBM Plex Sans', sans-serif; text-decoration:underline;
+    text-underline-offset:3px; padding:6px 4px;
+  }
+  .btn-text:hover{ color:var(--accent); }
+  .spacer{ flex:1 1 auto; }
+  .score{ font:500 .85rem 'IBM Plex Mono', monospace; color:var(--muted); }
+
+  /* ---- Feedback + solution ---- */
+  .feedback{ margin-top:16px; font-weight:500; font-size:.96rem; display:none; }
+  .feedback.show{ display:block; }
+  .feedback.good{ color:var(--success); }
+  .feedback.bad{ color:var(--error); }
+  .solution{
+    display:none; margin-top:14px; padding:16px 18px;
+    background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    font-size:.95rem;
+  }
+  .solution.show{ display:block; }
+  .solution h4{
+    margin:0 0 8px; font:600 .72rem/1 'IBM Plex Mono', monospace;
+    text-transform:uppercase; letter-spacing:.08em; color:var(--muted);
+  }
+  .solution p{ margin:.4em 0; }
+
+  footer{ margin-top:30px; color:var(--muted); font-size:.82rem; text-align:center; line-height:1.6; }
+  footer a{ color:var(--accent); text-decoration:none; }
+  footer a:hover{ text-decoration:underline; }
+
+  @media (max-width:520px){
+    .wrap{ padding:26px 14px 60px; }
+    .actions{ gap:8px; }
+    .spacer{ flex-basis:100%; height:0; }
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .card{ animation:rise .25s ease both; }
+    @keyframes rise{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">ECO 3101 · Price Discrimination</p>
+  <header>
+    <span class="mark" aria-hidden="true">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+        <path d="M5 29V5M5 29h24" stroke="#2b5c8a" stroke-width="2" stroke-linecap="round"/>
+        <path d="M6 24C12 24 13 9 28 8" stroke="#17263a" stroke-width="2" stroke-linecap="round" fill="none"/>
+      </svg>
+    </span>
+    <h1>Lecture 16 Exercises</h1>
+  </header>
+  <p class="sub">Intermediate Microeconomic Theory. Fresh numbers every time — work it out, type your answer, check yourself.</p>
+
+  <div class="topics" id="topics" role="group" aria-label="Choose a problem type"></div>
+
+  <div class="card" id="card">
+    <div class="eyebrow"><span id="eyebrow">—</span></div>
+    <div class="prompt" id="prompt"></div>
+
+    <div class="answers" id="answers"></div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="check">Check answer</button>
+      <button class="btn btn-ghost" id="next">New question</button>
+      <button class="btn-text" id="steps">Show steps</button>
+      <span class="spacer"></span>
+      <span class="score" id="score">Solved 0</span>
+    </div>
+
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <div class="solution" id="solution"></div>
+  </div>
+
+  <footer>
+    Ungraded self-practice — reload for a fresh set.<br>
+    Built for <strong>ECO 3101</strong> at Florida State University.<br>
+    Found an error, or have a correction or suggestion? Email
+    <a href="mailto:your-email@fsu.edu">your-email@fsu.edu</a>.
+  </footer>
+</div>
+
+<script>
+/* ============================ small helpers ============================ */
+const $ = (id) => document.getElementById(id);
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const randint = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+function shuffle(a){ a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const round = (x, d=6) => { const f = 10**d; return Math.round((x + Number.EPSILON) * f) / f; };
+const comma = (x) => x.toLocaleString('en-US');
+function parseNum(s){
+  if (s == null) return null;
+  s = String(s).trim().replace(/,/g,'').replace(/\s+/g,'');
+  if (s === '') return null;
+  // allow simple fractions like -3/4
+  const frac = s.match(/^(-?\d*\.?\d+)\/(-?\d*\.?\d+)$/);
+  if (frac){ const d = parseFloat(frac[2]); if (d === 0) return null; return parseFloat(frac[1]) / d; }
+  const v = Number(s);
+  return Number.isFinite(v) ? v : null;
+}
+function normTxt(s){
+  return String(s == null ? '' : s).toLowerCase()
+    .replace(/\s+/g,'').replace(/[*·×]/g,'').replace(/\\cdot/g,'')
+    .replace(/\^/g,'').replace(/\{|\}/g,'');
+}
+function typeset(){ if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); }
+
+/* ============================ state / engine ============================ */
+let current = 0;      // index into QUESTIONS
+let problem = null;   // the generated instance
+let solvedCount = 0;
+let mcPick = null;    // selected choice index for MC questions
+let multiPick = new Set(); // selected indices for multi-select questions
+
+function buildTopics(){
+  const box = $('topics');
+  box.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const b = document.createElement('button');
+    b.className = 'topic' + (i === current ? ' active' : '');
+    b.textContent = q.name;
+    b.addEventListener('click', () => { current = i; syncTopics(); newProblem(); });
+    box.appendChild(b);
+  });
+}
+function syncTopics(){
+  [...$('topics').children].forEach((b, i) => b.classList.toggle('active', i === current));
+}
+
+function newProblem(){
+  problem = QUESTIONS[current].gen();
+  mcPick = null;
+  multiPick = new Set();
+  $('eyebrow').textContent = QUESTIONS[current].eyebrow || QUESTIONS[current].name;
+  $('prompt').innerHTML = problem.promptHTML;
+
+  const wrap = $('answers');
+  wrap.innerHTML = '';
+
+  if (problem.mc){
+    // multiple-choice rendering
+    const list = document.createElement('div');
+    list.className = 'choices';
+    problem.mc.options.forEach((opt, i) => {
+      const c = document.createElement('button');
+      c.className = 'choice';
+      c.dataset.idx = i;
+      c.innerHTML = `<span class="bullet">${String.fromCharCode(65+i)}</span><span>${opt}</span>`;
+      c.addEventListener('click', () => {
+        mcPick = i;
+        [...list.children].forEach(ch => ch.classList.remove('sel','ok','no'));
+        c.classList.add('sel');
+      });
+      list.appendChild(c);
+    });
+    wrap.appendChild(list);
+  } else if (problem.multi){
+    // multiple-answers (checkbox) rendering
+    const list = document.createElement('div');
+    list.className = 'choices';
+    problem.multi.options.forEach((opt, i) => {
+      const c = document.createElement('button');
+      c.className = 'choice';
+      c.dataset.idx = i;
+      c.innerHTML = `<span class="box"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.2 3.2L13 4.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>${opt}</span>`;
+      c.addEventListener('click', () => {
+        if (multiPick.has(i)) multiPick.delete(i); else multiPick.add(i);
+        c.classList.toggle('sel', multiPick.has(i));
+        c.classList.remove('ok','no');
+      });
+      list.appendChild(c);
+    });
+    wrap.appendChild(list);
+  } else if (problem.match){
+    // matching rendering (each row: statement + a <select> of labels)
+    const box = document.createElement('div');
+    box.className = 'matchrows';
+    const optionsHTML = ['<option value="">\u2014 choose \u2014</option>']
+      .concat(problem.match.options.map((o,j) => `<option value="${j}">${o}</option>`)).join('');
+    problem.match.rows.forEach((row, i) => {
+      const r = document.createElement('div');
+      r.className = 'matchrow';
+      r.dataset.idx = i;
+      r.innerHTML = `<span class="ml">${row.left}</span><select data-idx="${i}">${optionsHTML}</select><span class="tag"></span>`;
+      box.appendChild(r);
+    });
+    wrap.appendChild(box);
+  } else {
+    // input-field rendering (numeric or text parts)
+    problem.parts.forEach((part, idx) => {
+      const field = document.createElement('div');
+      field.className = 'field';
+      field.innerHTML = `
+        <label>${part.label}</label>
+        <span class="inputwrap">
+          ${part.prefix ? `<span class="prefix">${part.prefix}</span>` : ''}
+          <input type="text" inputmode="${part.type === 'text' ? 'text' : 'decimal'}"
+                 autocomplete="off" data-idx="${idx}" placeholder="${part.placeholder || '?'}">
+          ${part.unit ? `<span class="unit">${part.unit}</span>` : ''}
+        </span>
+        <span class="tag"></span>`;
+      wrap.appendChild(field);
+    });
+  }
+
+  $('feedback').className = 'feedback';
+  $('feedback').textContent = '';
+  $('solution').className = 'solution';
+  $('solution').innerHTML = problem.solutionHTML;
+
+  typeset();
+  const first = wrap.querySelector('input');
+  if (first) first.focus();
+}
+
+function checkAnswers(){
+  const fb = $('feedback');
+
+  if (problem.mc){
+    const list = $('answers').querySelector('.choices');
+    if (mcPick == null){
+      fb.className = 'feedback show bad';
+      fb.textContent = 'Select an option first.';
+      return;
+    }
+    const correct = problem.mc.correct;
+    [...list.children].forEach((ch, i) => {
+      ch.classList.remove('sel','ok','no');
+      if (i === correct) ch.classList.add('ok');
+      else if (i === mcPick) ch.classList.add('no');
+    });
+    fb.className = 'feedback show';
+    if (mcPick === correct){
+      fb.classList.add('good'); fb.textContent = '\u2713 Correct.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite — the highlighted option is correct. See the steps below.';
+    }
+    return;
+  }
+
+  if (problem.multi){
+    const list = $('answers').querySelector('.choices');
+    if (multiPick.size === 0){
+      fb.className = 'feedback show bad';
+      fb.textContent = 'Select at least one option (or as many as apply).';
+      return;
+    }
+    const correct = new Set(problem.multi.correct);
+    const ok = correct.size === multiPick.size && [...correct].every(i => multiPick.has(i));
+    [...list.children].forEach((ch, i) => {
+      ch.classList.remove('sel','ok','no');
+      if (correct.has(i)) ch.classList.add('ok');
+      else if (multiPick.has(i)) ch.classList.add('no');
+    });
+    fb.className = 'feedback show';
+    if (ok){
+      fb.classList.add('good'); fb.textContent = '\u2713 Correct.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite \u2014 the correct set is highlighted green. See the steps below.';
+    }
+    return;
+  }
+
+  if (problem.match){
+    const rows = [...$('answers').querySelectorAll('.matchrow')];
+    let all = true, blank = false;
+    rows.forEach(r => {
+      const i = +r.dataset.idx;
+      const sel = r.querySelector('select');
+      const tag = r.querySelector('.tag');
+      r.classList.remove('ok','no');
+      if (sel.value === ''){ blank = true; all = false; if(tag) tag.textContent=''; return; }
+      if (+sel.value === problem.match.rows[i].correct){ r.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { r.classList.add('no'); if(tag) tag.textContent='try again'; all = false; }
+    });
+    fb.className = 'feedback show';
+    if (blank){ fb.classList.add('bad'); fb.textContent = 'Match every row before checking.'; }
+    else if (all){
+      fb.classList.add('good'); fb.textContent = '\u2713 All matched correctly.';
+      solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+    } else {
+      fb.classList.add('bad');
+      fb.textContent = 'Not quite \u2014 the green rows are right; fix the others or peek at the steps.';
+    }
+    return;
+  }
+
+  const inputs = [...$('answers').querySelectorAll('input')];
+  let allCorrect = true, anyBlank = false;
+
+  inputs.forEach(inp => {
+    const idx = +inp.dataset.idx;
+    const part = problem.parts[idx];
+    const field = inp.closest('.field');
+    const tag = field.querySelector('.tag');
+    field.classList.remove('ok', 'no');
+
+    if (part.type === 'text'){
+      const raw = inp.value.trim();
+      if (raw === ''){ anyBlank = true; allCorrect = false; if(tag) tag.textContent=''; return; }
+      const got = normTxt(raw);
+      const ok = part.accept.map(normTxt).includes(got);
+      if (ok){ field.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { field.classList.add('no'); if(tag) tag.textContent='try again'; allCorrect = false; }
+    } else {
+      const val = parseNum(inp.value);
+      if (val === null){ anyBlank = true; allCorrect = false; if(tag) tag.textContent=''; return; }
+      if (Math.abs(val - part.answer) <= (part.tol ?? 0.01)){ field.classList.add('ok'); if(tag) tag.textContent='correct'; }
+      else { field.classList.add('no'); if(tag) tag.textContent='try again'; allCorrect = false; }
+    }
+  });
+
+  fb.className = 'feedback show';
+  if (anyBlank){
+    fb.classList.add('bad');
+    fb.textContent = 'Enter an answer in each blank.';
+  } else if (allCorrect){
+    fb.classList.add('good');
+    fb.textContent = inputs.length > 1 ? '\u2713 All correct — nice work.' : '\u2713 Correct.';
+    solvedCount++; $('score').textContent = 'Solved ' + solvedCount;
+  } else {
+    fb.classList.add('bad');
+    fb.textContent = 'Not quite — fix the highlighted blank and try again, or peek at the steps.';
+  }
+}
+
+function showSteps(){ $('solution').classList.add('show'); typeset(); }
+
+$('check').addEventListener('click', checkAnswers);
+$('next').addEventListener('click', newProblem);
+$('steps').addEventListener('click', showSteps);
+$('answers').addEventListener('keydown', (e) => { if (e.key === 'Enter') checkAnswers(); });
+
+/* =========================================================================
+   QUESTIONS — each entry is one problem type. Edit numbers inside gen().
+   ========================================================================= */
+/* =========================================================================
+   Lecture 16 — Price Discrimination
+   1st degree (perfect): each unit sold at its own willingness-to-pay.
+   2nd degree: price varies with quantity purchased (same schedule for all).
+   3rd degree: price varies across identifiable customer groups.
+   ========================================================================= */
+
+/* pool of scenarios, tagged 1/2/3 by degree; gen() draws a random subset
+   each time so the match question isn't always the same three items. */
+const EXAMPLES = [
+  { deg: 1, t: 'A car dealership negotiates the price individually with each customer, aiming to charge each buyer the maximum they are willing to pay.' },
+  { deg: 1, t: 'A local artist sells each painting through private negotiation, tailoring the price to what she believes that specific buyer can afford.' },
+  { deg: 1, t: 'A freelance consultant quotes a custom fee to every client based on that client\u2019s perceived budget.' },
+  { deg: 2, t: 'An electricity provider bills the first 100 kWh at a lower rate, with higher usage charged at progressively higher rates.' },
+  { deg: 2, t: 'A warehouse club sells a 24-pack of paper towels at a lower price per roll than a single roll costs at a corner store.' },
+  { deg: 2, t: 'A software company offers Basic, Pro, and Enterprise tiers at different prices, and any customer may pick any tier.' },
+  { deg: 3, t: 'A movie theater charges lower ticket prices for students and seniors, while regular adults pay full price.' },
+  { deg: 3, t: 'An airline charges business travelers more than leisure travelers for economically similar seats, based on booking timing.' },
+  { deg: 3, t: 'A software company charges a lower subscription price to customers in lower-income countries than in wealthy ones.' },
+];
+const DEGREE_NAME = { 1: '1st degree price discrimination', 2: '2nd degree price discrimination', 3: '3rd degree price discrimination' };
+
+function monoDerive(A, b, c){
+  const Q = (A - c) / (2 * b);
+  const P = (A + c) / 2;
+  const CS = b * Q * Q / 2;
+  const profit = b * Q * Q;
+  return { Q, P, CS, profit };
+}
+
+/* [A, b, c] — reused for the single-market (1st-degree) question */
+const MONO_POOL = [
+  [50,1,10], [42,1,10], [54,1,10], [46,1,6], [34,1,10], [58,1,10],
+];
+
+/* [A1,b1,A2,b2,c] — two markets, common constant MC, for 3rd-degree */
+const THIRD_DEGREE_POOL = [
+  [50,1,70,1,10], [42,1,58,1,10], [46,1,62,1,6], [34,1,50,1,10],
+  [38,1,54,1,6],  [50,1,70,2,10], [60,2,52,1,20], [90,2,46,1,10],
+];
+
+const QUESTIONS = [
+
+  /* ----- 1. Match examples to their degree of price discrimination ----- */
+  {
+    key: 'matchdeg',
+    name: 'Identify the degree',
+    eyebrow: 'Examples \u2192 1st / 2nd / 3rd degree',
+    gen(){
+      const byDeg = { 1: EXAMPLES.filter(e=>e.deg===1), 2: EXAMPLES.filter(e=>e.deg===2), 3: EXAMPLES.filter(e=>e.deg===3) };
+      const chosen = [1,2,3].flatMap(d => shuffle(byDeg[d]).slice(0, 2));
+      const rowsSrc = shuffle(chosen);
+      const options = [DEGREE_NAME[1], DEGREE_NAME[2], DEGREE_NAME[3]];
+      const matchRows = rowsSrc.map(e => ({ left: e.t, correct: e.deg - 1 }));
+      const promptHTML = `<p>Match each scenario to the type of price discrimination it illustrates.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p><strong>1st degree (perfect):</strong> the seller extracts each buyer's exact willingness to
+           pay, one negotiated price per transaction.</p>
+        <p><strong>2nd degree:</strong> the price schedule depends only on the <em>quantity</em> a buyer
+           chooses (block pricing, quantity discounts, self-selected tiers) — the same menu is
+           offered to everyone.</p>
+        <p><strong>3rd degree:</strong> the seller sorts customers into observable <em>groups</em>
+           (student vs. adult, country, booking pattern) and charges each group its own single price.</p>`;
+      return { promptHTML, match: { rows: matchRows, options }, solutionHTML };
+    }
+  },
+
+  /* ----- 2. Third-degree price discrimination across two markets ------- */
+  {
+    key: 'thirddeg',
+    name: 'Two markets, one firm',
+    eyebrow: '3rd degree: \\(MR_1=MR_2=MC\\)',
+    gen(){
+      const [A1,b1,A2,b2,c] = pick(THIRD_DEGREE_POOL);
+      const m1 = monoDerive(A1, b1, c), m2 = monoDerive(A2, b2, c);
+      const b1Txt = b1 === 1 ? '' : String(b1), b2Txt = b2 === 1 ? '' : String(b2);
+      const higher = m1.P > m2.P ? '1' : '2';
+      const promptHTML = `
+        <p>A monopolist sells the same good in two separate, non-resellable markets, with constant
+           marginal cost \\(MC=${c}\\) in both. Market 1's inverse demand is
+           \\(P_1(q)=${A1}-${b1Txt}q\\); market 2's is \\(P_2(q)=${A2}-${b2Txt}q\\).</p>
+        <p>Find the profit-maximizing price and quantity in each market, and say which market pays the
+           higher price.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Since the markets can't resell to each other, the monopolist treats each as its own
+           mini-monopoly and sets \\(MR=MC\\) separately in each.</p>
+        <p><strong>Market 1:</strong> \\(MR_1(q)=${A1}-${2*b1}q=${c}\\Rightarrow
+           q_1=\\dfrac{${A1}-${c}}{${2*b1}}=\\mathbf{${m1.Q}}\\), so
+           \\(P_1=${A1}-${b1Txt||1}(${m1.Q})=\\mathbf{${m1.P}}\\).</p>
+        <p><strong>Market 2:</strong> \\(MR_2(q)=${A2}-${2*b2}q=${c}\\Rightarrow
+           q_2=\\dfrac{${A2}-${c}}{${2*b2}}=\\mathbf{${m2.Q}}\\), so
+           \\(P_2=${A2}-${b2Txt||1}(${m2.Q})=\\mathbf{${m2.P}}\\).</p>
+        <p>Market ${higher} pays the higher price — it's the market where, at the chosen price,
+           demand is less sensitive to price (less elastic), so raising price there costs fewer sales.</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(q_1=\\)', answer: m1.Q, tol: 0.01 },
+          { label: '\\(P_1=\\)', prefix: '$', answer: m1.P, tol: 0.01 },
+          { label: '\\(q_2=\\)', answer: m2.Q, tol: 0.01 },
+          { label: '\\(P_2=\\)', prefix: '$', answer: m2.P, tol: 0.01 },
+          { type: 'text', label: 'The higher price is charged in market:', accept: [higher] },
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 3. Perfect (1st-degree) price discrimination -------------------- */
+  {
+    key: 'firstdeg',
+    name: 'Perfect price discrimination',
+    eyebrow: '1st degree: \\(P=MC\\) at every unit',
+    gen(){
+      const [A,b,c] = pick(MONO_POOL);
+      const bTxt = b === 1 ? '' : String(b);
+      const Qc = (A - c) / b;
+      const profit = (A - c) * Qc / 2;
+      const promptHTML = `
+        <p>The same monopolist, \\(P(q)=${A}-${bTxt}q\\) and \\(MC=${c}\\), now practices <em>perfect</em>
+           (1st-degree) price discrimination: it charges every unit its own willingness-to-pay instead of
+           one uniform price.</p>
+        <p>Find the quantity produced, the monopolist's total profit, consumer surplus, and the
+           deadweight loss.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Selling each unit at its own price means an extra unit no longer forces a price cut on every
+           earlier unit — so there's no reason to hold output below the efficient level. The
+           monopolist produces up to where price still covers cost, \\(P=MC\\):
+           \\(${A}-${bTxt||1}q=${c}\\Rightarrow q=\\mathbf{${Qc}}\\), the same quantity a competitive
+           market would produce.</p>
+        <p>Every unit is sold at exactly its buyer's willingness to pay, so the monopolist captures the
+           <em>entire</em> area under demand down to \\(MC\\) as profit:
+           \\(\\tfrac12(${A}-${c})(${Qc})=\\mathbf{${profit}}\\). Consumers keep nothing beyond what they
+           paid, so \\(CS=\\mathbf{0}\\). Since output is at the efficient level, \\(DWL=\\mathbf{0}\\).</p>`;
+      return {
+        promptHTML,
+        parts: [
+          { label: '\\(q=\\)', answer: Qc, tol: 0.01 },
+          { label: 'Profit \\(=\\)', prefix: '$', answer: profit, tol: 0.01 },
+          { label: '\\(CS=\\)', prefix: '$', answer: 0, tol: 0.01 },
+          { label: '\\(DWL=\\)', prefix: '$', answer: 0, tol: 0.01 },
+        ],
+        solutionHTML
+      };
+    }
+  },
+
+  /* ----- 4. Match degree to its defining characteristic ----------------- */
+  {
+    key: 'concept',
+    name: 'What defines each degree',
+    eyebrow: 'Degree \u2192 defining feature',
+    gen(){
+      const pairs = [
+        { p: '1st degree price discrimination', e: 'Every unit is sold at that unit\u2019s exact willingness to pay; no deadweight loss remains' },
+        { p: '2nd degree price discrimination', e: 'Price depends on the quantity purchased; the same price schedule is offered to every customer' },
+        { p: '3rd degree price discrimination', e: 'Customers are sorted into observable groups, and each group is charged its own single price' },
+      ];
+      const rowsSrc = shuffle(pairs);
+      const options = shuffle(pairs.map(x => x.e));
+      const matchRows = rowsSrc.map(r => ({ left: r.p, correct: options.indexOf(r.e) }));
+      const promptHTML = `<p>Match each degree of price discrimination to the feature that defines it.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>The three degrees differ in <em>how finely</em> the seller can price: 1st degree prices each
+           unit individually (perfect information about willingness to pay), 2nd degree prices by
+           quantity (letting buyers reveal their type through what they choose to buy), and 3rd degree
+           prices by observable group membership (age, location, timing) rather than individual
+           identity.</p>`;
+      return { promptHTML, match: { rows: matchRows, options }, solutionHTML };
+    }
+  },
+
+  /* ----- 5. Requirements for price discrimination (multi-select) -------- */
+  {
+    key: 'requirements',
+    name: 'What price discrimination requires',
+    eyebrow: 'Necessary conditions',
+    gen(){
+      const statements = [
+        { t: 'The firm must have some market power (it can\u2019t be a price-taking perfect competitor)', v: true },
+        { t: 'The firm must be able to prevent resale (arbitrage) between customers', v: true },
+        { t: 'The firm must be able to sort customers by willingness to pay, directly or via a signal like quantity purchased', v: true },
+        { t: 'The firm\u2019s marginal cost must be zero', v: false },
+        { t: 'All customers must have identical demand', v: false },
+        { t: 'The government must pre-approve the pricing scheme', v: false },
+      ];
+      const order = shuffle(statements);
+      const correct = order.map((s,i) => s.v ? i : -1).filter(i => i >= 0);
+      const promptHTML = `<p>Select <strong>all</strong> conditions that are necessary for a firm to
+        successfully price discriminate.</p>`;
+      const solutionHTML = `
+        <h4>Worked solution</h4>
+        <p>Price discrimination requires market power (otherwise competition forces a single price down
+           to marginal cost anyway), a way to prevent resale (otherwise low-price buyers just resell to
+           high-price ones and the scheme unravels), and some way to tell buyers apart — whether
+           that's by individual negotiation, by what quantity they choose, or by an observable group
+           trait. It has nothing to do with marginal cost being zero, customers being identical (in fact
+           discrimination is only profitable because they <em>aren't</em>), or government approval.</p>`;
+      return {
+        promptHTML,
+        multi: { options: order.map(s => s.t), correct },
+        solutionHTML
+      };
+    }
+  },
+
+];
+
+/* ---- Startup ----
+   Primary path: MathJax's pageReady hook calls boot() once math is ready.
+   Fallback: if MathJax can't load (offline), still show questions after 3s. */
+let booted = false;
+function boot(){ if (booted) return; booted = true; buildTopics(); newProblem(); }
+setTimeout(() => { if (!booted) boot(); }, 3000);
+</script>
+</body>
+</html>
